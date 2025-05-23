@@ -1,139 +1,145 @@
 "use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Trash2, Plus, MapPin } from "lucide-react"
-
-export type LocationDistance = {
-  type: string
-  name: string
-  distance: string
-  walkTime?: string
-}
-
-export type LocationType = {
-  type: string
-  icon: string
-  showWalkTime: boolean
-}
+import { Label } from "@/components/ui/label"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { MapPin, Plus, X } from "lucide-react"
 
 interface DistanceMapperProps {
-  value: LocationDistance[]
-  onChange: (value: LocationDistance[]) => void
-  types: LocationType[]
-  maxLocations?: number
+  value: Array<{
+    name: string
+    distance: number
+    unit: "m" | "km" | "min"
+  }>
+  onChange: (
+    value: Array<{
+      name: string
+      distance: number
+      unit: "m" | "km" | "min"
+    }>,
+  ) => void
+  label?: string
+  description?: string
 }
 
-export function DistanceMapper({ value = [], onChange, types, maxLocations = 10 }: DistanceMapperProps) {
-  const addLocation = () => {
-    if (value.length < maxLocations) {
-      const defaultType = types[0]?.type || ""
-      onChange([...value, { type: defaultType, name: "", distance: "", walkTime: "" }])
+export function DistanceMapper({
+  value = [],
+  onChange,
+  label = "Nearby Amenities",
+  description = "Add distances to nearby amenities and points of interest",
+}: DistanceMapperProps) {
+  const [newName, setNewName] = useState("")
+  const [newDistance, setNewDistance] = useState<number | "">("")
+  const [newUnit, setNewUnit] = useState<"m" | "km" | "min">("min")
+
+  const handleAddItem = () => {
+    if (newName && newDistance !== "") {
+      onChange([
+        ...value,
+        {
+          name: newName,
+          distance: Number(newDistance),
+          unit: newUnit,
+        },
+      ])
+      setNewName("")
+      setNewDistance("")
     }
   }
 
-  const updateLocation = (index: number, field: keyof LocationDistance, fieldValue: string) => {
-    const newLocations = [...value]
-    newLocations[index] = { ...newLocations[index], [field]: fieldValue }
-    onChange(newLocations)
-  }
-
-  const removeLocation = (index: number) => {
-    onChange(value.filter((_, i) => i !== index))
-  }
-
-  const getIconForType = (type: string): string => {
-    const locationType = types.find((t) => t.type === type)
-    return locationType?.icon || "📍"
-  }
-
-  const shouldShowWalkTime = (type: string): boolean => {
-    const locationType = types.find((t) => t.type === type)
-    return locationType?.showWalkTime || false
+  const handleRemoveItem = (index: number) => {
+    const newValue = [...value]
+    newValue.splice(index, 1)
+    onChange(newValue)
   }
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        {value.map((location, index) => (
-          <div key={index} className="p-3 bg-gray-50 rounded-md space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-lg mr-2">{getIconForType(location.type)}</span>
-                <Select value={location.type} onValueChange={(val) => updateLocation(index, "type", val)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Location type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {types.map((type) => (
-                      <SelectItem key={type.type} value={type.type}>
-                        <div className="flex items-center">
-                          <span className="mr-2">{type.icon}</span>
-                          {type.type}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <div>
+        <Label>{label}</Label>
+        <p className="text-sm text-gray-500 mt-1">{description}</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-3 md:col-span-1">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="Supermarket"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="distance">Distance</Label>
+                  <Input
+                    id="distance"
+                    type="number"
+                    placeholder="5"
+                    value={newDistance}
+                    onChange={(e) => setNewDistance(e.target.value ? Number(e.target.value) : "")}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="unit">Unit</Label>
+                  <select
+                    id="unit"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={newUnit}
+                    onChange={(e) => setNewUnit(e.target.value as "m" | "km" | "min")}
+                  >
+                    <option value="min">min</option>
+                    <option value="m">m</option>
+                    <option value="km">km</option>
+                  </select>
+                </div>
               </div>
               <Button
                 type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => removeLocation(index)}
-                className="text-gray-500 hover:text-red-500"
+                onClick={handleAddItem}
+                disabled={!newName || newDistance === ""}
+                className="w-full"
               >
-                <Trash2 className="h-4 w-4" />
+                <Plus className="h-4 w-4 mr-2" /> Add Item
               </Button>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="flex items-center space-x-2">
-              <Input
-                value={location.name}
-                onChange={(e) => updateLocation(index, "name", e.target.value)}
-                placeholder="Location name"
-                className="flex-1"
-              />
-              <Input
-                value={location.distance}
-                onChange={(e) => updateLocation(index, "distance", e.target.value)}
-                placeholder="Distance (km)"
-                className="w-24"
-              />
-            </div>
-
-            {shouldShowWalkTime(location.type) && (
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                <Input
-                  value={location.walkTime || ""}
-                  onChange={(e) => updateLocation(index, "walkTime", e.target.value)}
-                  placeholder="Walking time (min)"
-                  className="flex-1"
-                />
+        <Card>
+          <CardContent className="p-4">
+            <Label>Added Amenities</Label>
+            {value.length === 0 ? (
+              <p className="text-sm text-gray-500 mt-2">No amenities added yet</p>
+            ) : (
+              <div className="mt-2 space-y-2">
+                {value.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 text-gray-500" />
+                      <span>{item.name}</span>
+                      <Badge variant="outline" className="ml-2">
+                        {item.distance} {item.unit}
+                      </Badge>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => handleRemoveItem(index)} className="h-8 w-8 p-0">
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Remove</span>
+                    </Button>
+                  </div>
+                ))}
               </div>
             )}
-          </div>
-        ))}
+          </CardContent>
+        </Card>
       </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={addLocation}
-        disabled={value.length >= maxLocations}
-        className="w-full"
-      >
-        <Plus className="h-4 w-4 mr-1" />
-        Add Location
-      </Button>
-
-      {value.length === 0 && (
-        <p className="text-sm text-gray-500 text-center italic">
-          No nearby locations added yet. Click "Add Location" to start.
-        </p>
-      )}
     </div>
   )
 }

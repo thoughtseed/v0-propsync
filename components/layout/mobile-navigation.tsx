@@ -1,46 +1,101 @@
 "use client"
-import { usePathname, useRouter } from "next/navigation"
-import { Home, Building2, Plus, Search, BarChart3 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
-const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "Properties", href: "/properties", icon: Building2 },
-  { name: "Add", href: "/properties/add", icon: Plus },
-  { name: "Search", href: "/search", icon: Search },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { LogoutButton } from "@/components/auth/logout-button"
+import { Search, BarChart2, FileText, Users, Shield, Settings, Building, Menu } from "lucide-react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+
+const navItems = [
+  {
+    name: "Properties",
+    href: "/properties",
+    icon: Building,
+  },
+  {
+    name: "Search",
+    href: "/search",
+    icon: Search,
+  },
+  {
+    name: "Analytics",
+    href: "/analytics",
+    icon: BarChart2,
+  },
+  {
+    name: "Reports",
+    href: "/reports",
+    icon: FileText,
+  },
+  {
+    name: "Team",
+    href: "/team",
+    icon: Users,
+  },
+  {
+    name: "Security",
+    href: "/security",
+    icon: Shield,
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: Settings,
+  },
 ]
 
 export function MobileNavigation() {
   const pathname = usePathname()
-  const router = useRouter()
-
-  const handleNavigation = (href: string) => {
-    // Use router.push for client-side navigation
-    router.push(href)
-  }
+  const [open, setOpen] = useState(false)
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-2 z-10">
-      <div className="flex justify-around">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
-          return (
-            <button
-              key={item.name}
-              onClick={() => handleNavigation(item.href)}
-              className={cn(
-                "flex flex-col items-center py-2 px-3 rounded-lg transition-colors min-h-[44px] min-w-[44px]",
-                isActive ? "text-blue-600 bg-blue-50" : "text-gray-600 hover:text-gray-900",
-              )}
-              aria-current={isActive ? "page" : undefined}
-            >
-              <item.icon className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">{item.name}</span>
-            </button>
-          )
-        })}
+    <div className="lg:hidden border-b bg-background">
+      <div className="flex items-center justify-between p-4">
+        <Link href="/" className="flex items-center space-x-2">
+          <Building className="h-6 w-6" />
+          <span className="text-xl font-bold">Co.Property</span>
+        </Link>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64 p-0">
+            <SheetHeader className="p-6 border-b">
+              <SheetTitle className="flex items-center space-x-2">
+                <Building className="h-6 w-6" />
+                <span>Co.Property</span>
+              </SheetTitle>
+            </SheetHeader>
+            <nav className="flex-1 p-4 space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium",
+                    pathname === item.href || pathname.startsWith(`${item.href}/`)
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted",
+                  )}
+                  onClick={() => setOpen(false)}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </Link>
+              ))}
+              <div className="pt-4 mt-4 border-t">
+                <LogoutButton variant="outline" className="w-full" />
+              </div>
+            </nav>
+          </SheetContent>
+        </Sheet>
       </div>
-    </nav>
+    </div>
   )
 }

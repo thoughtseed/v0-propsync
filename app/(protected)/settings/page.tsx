@@ -1,14 +1,17 @@
 "use client"
 
+import { CardFooter } from "@/components/ui/card"
+
 import { ResponsiveLayout } from "@/components/layout/responsive-layout"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { Settings, Bell, Globe, Moon, Sun, Palette, Database, Mail, Cloud } from "lucide-react"
+import { Settings, Bell, Globe, Moon, Sun, Palette, Database, Mail, Cloud, User, Lock } from "lucide-react"
+import Link from "next/link"
 
 export default function SettingsPage() {
   const isMobile = useIsMobile()
@@ -27,6 +30,7 @@ export default function SettingsPage() {
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            <TabsTrigger value="account">Account</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-6 pt-4">
@@ -515,6 +519,46 @@ export default function SettingsPage() {
                 <Button>Save Connection</Button>
               </CardFooter>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="account" className="space-y-6 pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Link href="/settings/profile">
+                <Card className="h-full hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <User className="h-5 w-5 mr-2" />
+                      Profile Settings
+                    </CardTitle>
+                    <CardDescription>Update your personal information</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">Manage your name, email, and other account details.</p>
+                    <Button variant="outline" className="mt-4">
+                      Edit Profile
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/settings/change-password">
+                <Card className="h-full hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Lock className="h-5 w-5 mr-2" />
+                      Security
+                    </CardTitle>
+                    <CardDescription>Manage your password and account security</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">Change your password and secure your account.</p>
+                    <Button variant="outline" className="mt-4">
+                      Change Password
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

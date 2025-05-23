@@ -1,7 +1,7 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/lib/types/supabase"
 
-// Create a singleton instance of the Supabase client
+// Singleton pattern to avoid multiple instances
 let supabaseClient: ReturnType<typeof createClientComponentClient<Database>> | null = null
 
 export const getSupabaseClient = () => {
@@ -11,26 +11,34 @@ export const getSupabaseClient = () => {
   return supabaseClient
 }
 
-// Helper function to get the current user
-export const getCurrentUser = async () => {
+export async function getUserRole(): Promise<string | null> {
   const supabase = getSupabaseClient()
+
+  // Get the current session
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) return null
 
-  if (!user) return null
+  // Get the user's role from the users table
+  const { data, error } = await supabase.from("users").select("role").eq("id", session.user.id).single()
 
-  // Get the user's profile from the users table
-  const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
-
-  return {
-    ...user,
-    profile: profile || null,
-  }
+  if (error || !data) return null
+  return data.role
 }
 
-// Helper function to get the current user's role
-export const getUserRole = async (): Promise<string> => {
-  const user = await getCurrentUser()
-  return user?.profile?.role || "readonly"
+export async function getCurrentUser() {
+  const supabase = getSupabaseClient()
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) return null
+
+  const { data } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+
+  return {
+    ...session.user,
+    profile: data || null,
+  }
 }

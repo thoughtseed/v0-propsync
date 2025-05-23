@@ -2,13 +2,35 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import type { Database } from "@/lib/types/supabase"
 
-export async function getServerSupabaseClient() {
+// Named export for createClient that was missing
+export const createClient = () => {
   const cookieStore = cookies()
   return createServerComponentClient<Database>({ cookies: () => cookieStore })
 }
 
+// Regular server client (respects RLS)
+export const getServerSupabaseClient = () => {
+  const cookieStore = cookies()
+  return createServerComponentClient<Database>({ cookies: () => cookieStore })
+}
+
+// Admin client with service role (bypasses RLS)
+export const getAdminSupabaseClient = () => {
+  const cookieStore = cookies()
+  return createServerComponentClient<Database>({
+    cookies: () => cookieStore,
+    options: {
+      global: {
+        headers: {
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      },
+    },
+  })
+}
+
 export async function getServerSession() {
-  const supabase = await getServerSupabaseClient()
+  const supabase = getServerSupabaseClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -19,7 +41,7 @@ export async function getServerUser() {
   const session = await getServerSession()
   if (!session) return null
 
-  const supabase = await getServerSupabaseClient()
+  const supabase = getServerSupabaseClient()
   const { data } = await supabase.from("users").select("*").eq("id", session.user.id).single()
 
   return {
