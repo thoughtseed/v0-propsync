@@ -11,6 +11,7 @@ export const getSupabaseClient = () => {
   return supabaseClient
 }
 
+// Simplified role handling - always returns "user" for authenticated users
 export async function getUserRole(): Promise<string | null> {
   const supabase = getSupabaseClient()
 
@@ -20,11 +21,8 @@ export async function getUserRole(): Promise<string | null> {
   } = await supabase.auth.getSession()
   if (!session) return null
 
-  // Get the user's role from the users table
-  const { data, error } = await supabase.from("users").select("role").eq("id", session.user.id).single()
-
-  if (error || !data) return null
-  return data.role
+  // Always return "user" for authenticated users (removing role-based access control)
+  return "user"
 }
 
 export async function getCurrentUser() {

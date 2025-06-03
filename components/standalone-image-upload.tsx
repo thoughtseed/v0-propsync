@@ -1,16 +1,12 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { FormField } from "@/components/wizard/fields/form-field"
 import { Upload, X, ImageIcon, Loader2 } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import { v4 as uuidv4 } from "uuid"
 
-interface ImageUploadProps {
-  name: string
+interface StandaloneImageUploadProps {
   label: string
   value: string | undefined
   onChange: (url: string) => void
@@ -20,8 +16,7 @@ interface ImageUploadProps {
   acceptedTypes?: string[]
 }
 
-export function ImageUpload({
-  name,
+export function StandaloneImageUpload({
   label,
   value,
   onChange,
@@ -29,7 +24,7 @@ export function ImageUpload({
   required = false,
   maxSizeMB = 5,
   acceptedTypes = ["image/jpeg", "image/png", "image/webp"],
-}: ImageUploadProps) {
+}: StandaloneImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -96,7 +91,7 @@ export function ImageUpload({
         if (errorObj.message) {
           // Check for RLS policy errors, which likely means storage setup is needed
           if (errorObj.message.includes("row-level security policy")) {
-            setUploadError(`Storage policy error: Ensure admin has run storage setup (${errorObj.statusCode || 'unknown'})`)
+            setUploadError(`Storage policy error: Ensure storage policies are configured (${errorObj.statusCode || 'unknown'})`)
           } else {
             setUploadError(errorObj.message)
           }
@@ -128,7 +123,13 @@ export function ImageUpload({
   }
 
   return (
-    <FormField name={name} label={label} description={description} required={required}>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="flex items-center text-sm font-medium">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      </div>
       <input
         type="file"
         ref={fileInputRef}
@@ -174,6 +175,7 @@ export function ImageUpload({
       )}
 
       {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
-    </FormField>
+      {description && <p className="text-xs text-gray-500">{description}</p>}
+    </div>
   )
 }

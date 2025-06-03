@@ -25,21 +25,21 @@ export function SecureField({ name, label, description, required = false, placeh
   const value = (formData[name as keyof typeof formData] as string) || ""
 
   // If user doesn't have permission to view sensitive data
-  if (!canViewSensitive) {
-    return (
-      <FormField name={name} label={label} description={description} required={required}>
-        <div className="flex items-center space-x-2">
-          <Input type="password" value="********" disabled className="flex-1" />
-          <Button type="button" size="icon" variant="outline" disabled>
-            <Lock className="h-4 w-4" />
-          </Button>
-        </div>
-        <p className="text-xs text-amber-600 mt-1">
-          You don't have permission to view or edit this sensitive information.
-        </p>
-      </FormField>
-    )
-  }
+  // if (!canViewSensitive) {
+  //   return (
+  //     <FormField name={name} label={label} description={description} required={required}>
+  //       <div className="flex items-center space-x-2">
+  //         <Input type="password" value="********" disabled className="flex-1" />
+  //         <Button type="button" size="icon" variant="outline" disabled>
+  //           <Lock className="h-4 w-4" />
+  //         </Button>
+  //       </div>
+  //       <p className="text-xs text-amber-600 mt-1">
+  //         You don't have permission to view or edit this sensitive information.
+  //       </p>
+  //     </FormField>
+  //   )
+  // }
 
   return (
     <FormField name={name} label={label} description={description} required={required}>

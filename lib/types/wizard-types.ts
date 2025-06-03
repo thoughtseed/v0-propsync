@@ -19,6 +19,14 @@ export type WizardCategory = {
 }
 
 export type WizardFormData = {
+  // Metadata
+  id?: string
+  user_id?: string
+  status?: "active" | "maintenance" | "inactive" | "pending"
+  revenue_band?: "budget" | "mid-range" | "luxury" | "ultra-luxury"
+  created_at?: string
+  updated_at?: string
+  
   // Basic Information
   property_reference?: string
   building_name?: string
@@ -64,14 +72,86 @@ export type WizardFormData = {
   counter_material?: string
   kitchen_photos?: string[]
 
-  // And so on for other categories...
-
-  // Metadata
-  status?: "active" | "maintenance" | "inactive" | "pending"
-  revenue_band?: "budget" | "mid-range" | "luxury" | "ultra-luxury"
-  created_at?: string
-  updated_at?: string
-  id?: string
+  // Add all the other properties for categorywise fields here
+  // Extended properties for forms - needed for TypeScript validation
+  bed_configurations?: any[]
+  extra_bedding_location?: string
+  mattress_type?: string
+  pillow_details?: string
+  closet_details?: string
+  blackout_curtains?: string
+  bedroom_electronics?: any[]
+  furniture_inventory?: string
+  bedroom_amenities?: any[]
+  
+  shower_bath_config?: string
+  towel_details?: string
+  toiletries_provided?: any[]
+  hair_dryer_available?: boolean
+  hair_dryer_details?: string
+  water_pressure?: string
+  hot_water_system?: string
+  ventilation?: string
+  bathroom_special_features?: any[]
+  bathroom_accessibility_features?: any[]
+  
+  wifi_network?: string
+  wifi_password?: string
+  internet_speed?: string
+  smart_home_features?: any[]
+  router_location?: string
+  tv_details?: string
+  streaming_services?: string
+  speaker_systems?: string
+  remote_controls?: any[]
+  charging_stations?: string
+  backup_solutions?: string
+  
+  washer_details?: string
+  dryer_details?: string
+  detergent_provided?: string
+  iron_board_available?: boolean
+  drying_rack_location?: string
+  laundry_basket_available?: boolean
+  building_laundry_info?: string
+  vacuum_details?: string
+  cleaning_supplies?: any[]
+  cleaning_schedule?: string
+  special_instructions?: string
+  stain_removal_kit?: string
+  ac_units_details?: string
+  heating_system?: string
+  thermostat_instructions?: string
+  ventilation_systems?: string
+  air_purifiers?: string
+  electrical_panel_location?: string
+  
+  public_transport?: string
+  nearby_locations?: any[]
+  walking_score?: string
+  neighborhood_description?: string
+  restaurants?: any[]
+  grocery_shopping?: string
+  tourist_attractions?: any[]
+  emergency_services?: string
+  local_tips?: string
+  weather_patterns?: string
+  safety_assessment?: string
+  
+  step_free_access?: boolean
+  elevator_accessibility?: string
+  doorway_widths?: string
+  bathroom_features?: any[]
+  kitchen_height?: string
+  visual_features?: any[]
+  auditory_features?: any[]
+  energy_rating?: string
+  renewable_features?: string
+  recycling_instructions?: string
+  efficient_appliances?: any[]
+  water_conservation?: any[]
+  eco_products?: any[]
+  sustainable_materials?: string
 }
 
 export type WizardContextType = {
@@ -85,7 +165,8 @@ export type WizardContextType = {
   prevStep: () => void
   isFirstStep: boolean
   isLastStep: boolean
-  saveProgress: () => Promise<void>
+  saveProgress: () => Promise<{ success: boolean; error?: unknown }>
+  finishProperty: () => Promise<{ success: boolean; propertyId?: string; error?: unknown }>
   isLoading: boolean
   progress: number
   validateStep: (data: any) => boolean

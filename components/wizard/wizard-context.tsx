@@ -3,6 +3,9 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useFormValidation } from "@/hooks/use-form-validation"
+import { useRouter } from "next/navigation"
+import { createProperty } from "@/app/actions/property-actions"
+import { useToast } from "@/hooks/use-toast"
 import type { WizardCategory, WizardContextType, WizardFormData } from "@/lib/types/wizard-types"
 
 // Define all wizard steps and categories
@@ -321,6 +324,9 @@ export function WizardProvider({ children, initialData = {} }: { children: React
     setValidationEnabled(true)
   }
 
+  const router = useRouter()
+  const { toast } = useToast()
+
   // Save progress to localStorage and Supabase
   const saveProgress = async () => {
     try {
@@ -338,6 +344,57 @@ export function WizardProvider({ children, initialData = {} }: { children: React
       return { success: true }
     } catch (error) {
       console.error("Failed to save progress:", error)
+      return { success: false, error }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Finish property creation - creates the actual property in database
+  const finishProperty = async () => {
+    try {
+      // Validate all fields before submission
+      enableValidation()
+      const isValid = validateStep(formData)
+      if (!isValid) {
+        toast({
+          title: "Validation Failed",
+          description: "Please fix the errors before submitting.",
+          variant: "destructive",
+        })
+        return { success: false }
+      }
+
+      setIsLoading(true)
+      const result = await createProperty(formData)
+      
+      if (result.success) {
+        toast({
+          title: "Property Created!",
+          description: "Your property has been successfully created.",
+        })
+
+        // Clear local storage
+        localStorage.removeItem("propertyWizardData")
+
+        // Redirect to the properties page
+        router.push('/properties')
+        return result
+      } else {
+        toast({
+          title: "Error Creating Property",
+          description: result.error || "An unknown error occurred",
+          variant: "destructive",
+        })
+        return result
+      }
+    } catch (error) {
+      console.error("Failed to create property:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create property",
+        variant: "destructive",
+      })
       return { success: false, error }
     } finally {
       setIsLoading(false)
@@ -402,6 +459,7 @@ export function WizardProvider({ children, initialData = {} }: { children: React
         isFirstStep,
         isLastStep,
         saveProgress,
+        finishProperty, // Add the new function to the context
         isLoading,
         progress,
         validateStep,

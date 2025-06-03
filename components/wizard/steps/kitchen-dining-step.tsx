@@ -229,9 +229,13 @@ export function KitchenDiningStep() {
                 </div>
               ) : (
                 <div>
-                  <Upload className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+                  <Upload className="h-10 w-10 text-gray-400 mx-auto mb-2"  />
                   <p className="text-sm text-gray-500 mb-2">Upload photos of the kitchen to showcase its features</p>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const photos = [...(formData.kitchen_photos || [])]
+                    photos.push("/placeholder.svg")
+                    updateFormData({ kitchen_photos: photos })
+                  }}>
                     Upload Photos
                   </Button>
                 </div>

@@ -25,6 +25,7 @@ export function WizardDesktopLayout({ children }: WizardDesktopLayoutProps) {
     isLastStep,
     progress,
     saveProgress,
+    finishProperty, // Add the new finishProperty
     isLoading,
     errors,
     enableValidation,
@@ -124,9 +125,18 @@ export function WizardDesktopLayout({ children }: WizardDesktopLayoutProps) {
             Back
           </Button>
 
-          <Button onClick={handleNextClick} disabled={isLastStep}>
-            {isLastStep ? "Finish" : "Next"}
-            <ChevronRight className="h-4 w-4 ml-1" />
+          <Button 
+            onClick={isLastStep ? () => finishProperty() : handleNextClick}
+            className={isLastStep ? "bg-green-600 hover:bg-green-700" : ""} 
+          >
+            {isLastStep ? (isLoading ? "Creating..." : "Finish") : "Next"}
+            {isLastStep ? 
+              (isLoading ? 
+                <div className="h-4 w-4 ml-1 animate-spin rounded-full border-b-2 border-white"></div> : 
+                <Check className="h-4 w-4 ml-1" />
+              ) : 
+              <ChevronRight className="h-4 w-4 ml-1" />
+            }
           </Button>
         </footer>
       </div>
