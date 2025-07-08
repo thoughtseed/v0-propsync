@@ -187,3 +187,33 @@ export async function deleteDraft(draftId: string) {
     return { success: false, error: error instanceof Error ? error.message : "Failed to delete draft" }
   }
 }
+
+export async function deleteProperty(propertyId: string) {
+  "use server"
+
+  if (!propertyId) {
+    return { success: false, error: "Property ID is required." }
+  }
+
+  const supabase = createDirectAdminClient()
+
+  try {
+    // In a real app, you'd also delete related data (images from storage, etc.)
+    // For now, we just delete the main property record.
+
+    const { error } = await supabase.from("properties").delete().eq("id", propertyId)
+
+    if (error) {
+      console.error("Error deleting property from database:", error)
+      throw new Error(error.message)
+    }
+
+    revalidatePath("/properties")
+    revalidatePath(`/properties/${propertyId}`)
+
+    return { success: true, message: "Property deleted successfully." }
+  } catch (error) {
+    console.error("Failed to delete property:", error)
+    return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred." }
+  }
+}
