@@ -32,7 +32,59 @@ export const dynamic = "force-dynamic"
 export default async function PropertiesPage() {
   const supabase = await getServerSupabaseClient()
 
-  // Fetch properties from the new properties_complete table
+  console.log("Fetching properties data from database...")
+  
+  // First check if properties_complete table exists
+  const { data: tableInfo, error: tableError } = await supabase
+    .from('properties_complete')
+    .select('*')
+    
+  
+  if (tableError) {
+    console.error("Table check error:", tableError)
+    
+    // Try querying the properties table instead
+    console.log("Trying properties table instead...")
+    const { data: propertiesData, error: propertiesError } = await supabase
+      .from("properties_complete")
+      .select("*")
+   
+    
+    if (propertiesError) {
+      console.error("Error fetching from properties table:", propertiesError)
+      return (
+        <ResponsiveLayout>
+          <div className="p-4 bg-red-50 text-red-500 rounded-md">
+            Database error: {propertiesError.message}. Please check console for details.
+          </div>
+        </ResponsiveLayout>
+      )
+    }
+    
+    console.log("Properties found:", propertiesData?.length || 0)
+    console.log("Sample property data:", propertiesData?.[0] || "No properties")
+    
+    // Format properties for our components using the properties table
+    const formattedProperties: FormattedProperty[] = (propertiesData || []).map((property: any) => ({
+      id: property.id,
+      reference: property.property_reference,
+      name: property.building_name,
+      unit: property.unit_number,
+      type: property.property_type,
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      occupancy: property.max_occupancy,
+      address: property.full_address || "Address not available",
+      imageUrl: property.primary_photo,
+      completion: property.checklist_completion?.overall_completion || 0,
+      status: property.status,
+      createdAt: property.created_at,
+    }))
+    
+    return renderPropertiesPage(formattedProperties)
+  }
+
+  // Fetch properties from the properties_complete table
   const { data: properties, error } = await supabase
     .from("properties_complete")
     .select("*")
@@ -47,8 +99,11 @@ export default async function PropertiesPage() {
     )
   }
 
+  console.log("Properties found:", properties?.length || 0)
+  console.log("Sample property data:", properties?.[0] || "No properties")
+
   // Format properties for our components with proper typing
-  const formattedProperties: FormattedProperty[] = (properties || []).map((property) => ({
+  const formattedProperties: FormattedProperty[] = (properties || []).map((property: any) => ({
     id: property.id,
     reference: property.property_reference,
     name: property.building_name,
@@ -64,6 +119,10 @@ export default async function PropertiesPage() {
     createdAt: property.created_at,
   }))
 
+  return renderPropertiesPage(formattedProperties)
+}
+
+function renderPropertiesPage(formattedProperties: FormattedProperty[]) {
   return (
     <ResponsiveLayout>
       <div className="space-y-6">
