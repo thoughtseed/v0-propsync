@@ -10,20 +10,32 @@ import Link from "next/link"
 import { ResponsiveLayout } from "@/components/layout/responsive-layout"
 import { ViewSwitcher } from "@/components/properties/view-switcher"
 
+// Define the property interface to match the component requirements
+interface FormattedProperty {
+  id: string
+  reference: string
+  name: string
+  unit: string
+  type: string
+  bedrooms: number
+  bathrooms: number
+  occupancy: number
+  address: string
+  imageUrl?: string
+  completion: number
+  status: string
+  createdAt: string
+}
+
 export const dynamic = "force-dynamic"
 
 export default async function PropertiesPage() {
   const supabase = await getServerSupabaseClient()
 
-  // Fetch properties with related data
+  // Fetch properties from the new properties_complete table
   const { data: properties, error } = await supabase
-    .from("properties")
-    .select(`
-      *,
-      basic_info:property_basic_info(full_address),
-      checklist_completion(*),
-      images:property_images(*)
-    `)
+    .from("properties_complete")
+    .select("*")
     .order("created_at", { ascending: false })
 
   if (error) {
@@ -35,8 +47,8 @@ export default async function PropertiesPage() {
     )
   }
 
-  // Format properties for our components
-  const formattedProperties = (properties || []).map((property) => ({
+  // Format properties for our components with proper typing
+  const formattedProperties: FormattedProperty[] = (properties || []).map((property) => ({
     id: property.id,
     reference: property.property_reference,
     name: property.building_name,
@@ -45,9 +57,9 @@ export default async function PropertiesPage() {
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
     occupancy: property.max_occupancy,
-    address: property.basic_info?.[0]?.full_address || "Address not available",
-    imageUrl: property.images?.[0]?.url,
-    completion: property.checklist_completion?.[0]?.overall || 0,
+    address: property.full_address || "Address not available",
+    imageUrl: property.primary_photo,
+    completion: property.overall_completion || 0,
     status: property.status,
     createdAt: property.created_at,
   }))

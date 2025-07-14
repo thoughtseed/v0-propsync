@@ -146,6 +146,74 @@ CREATE POLICY "Admins and managers can view all property_basic_info"
     )
   );
 
+-- Create property_images table
+CREATE TABLE IF NOT EXISTS public.property_images (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  property_id UUID NOT NULL REFERENCES public.properties(id) ON DELETE CASCADE,
+  url TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'main',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Set up Row Level Security for property_images table
+ALTER TABLE public.property_images ENABLE ROW LEVEL SECURITY;
+
+-- Policies for property_images table
+CREATE POLICY "Users can view their own property_images" 
+  ON public.property_images FOR SELECT 
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.properties 
+      WHERE id = property_id AND user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert their own property_images" 
+  ON public.property_images FOR INSERT 
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.properties 
+      WHERE id = property_id AND user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can update their own property_images" 
+  ON public.property_images FOR UPDATE 
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.properties 
+      WHERE id = property_id AND user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete their own property_images" 
+  ON public.property_images FOR DELETE 
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.properties 
+      WHERE id = property_id AND user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins and managers can view all property_images" 
+  ON public.property_images FOR SELECT 
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role IN ('admin', 'manager')
+    )
+  );
+
+CREATE POLICY "Admins and managers can update all property_images" 
+  ON public.property_images FOR UPDATE 
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role IN ('admin', 'manager')
+    )
+  );
+
 -- Create similar tables and policies for other property sections
 -- For brevity, I'm not including all tables here, but the pattern is the same
 

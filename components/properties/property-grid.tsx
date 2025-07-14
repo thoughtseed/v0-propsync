@@ -1,24 +1,20 @@
 import { PropertyCard } from "./property-card"
 
+// Updated interface to match the formatted properties from the page component
 interface Property {
   id: string
-  property_reference: string
-  building_name: string
-  unit_number: string
-  property_type: string
+  reference: string
+  name: string
+  unit: string
+  type: string
   bedrooms: number
   bathrooms: number
-  max_occupancy: number
+  occupancy: number
+  address: string
+  imageUrl?: string
+  completion: number
   status: string
-  basic_info?: {
-    full_address: string
-  }[]
-  checklist_completion?: {
-    overall: number
-  }[]
-  images?: {
-    url: string
-  }[]
+  createdAt: string
 }
 
 interface PropertyGridProps {
@@ -40,17 +36,17 @@ export function PropertyGrid({ properties }: PropertyGridProps) {
         <PropertyCard
           key={property.id}
           id={property.id}
-          reference={property.property_reference || ""}
-          name={property.building_name || ""}
-          unit={property.unit_number || ""}
-          type={property.property_type || ""}
-          bedrooms={property.bedrooms || 0}
-          bathrooms={property.bathrooms || 0}
-          occupancy={property.max_occupancy || 0}
-          address={property.basic_info?.[0]?.full_address || ""}
-          imageUrl={property.images?.[0]?.url}
-          completion={property.checklist_completion?.[0]?.overall || 0}
-          status={property.status || ""}
+          reference={property.reference}
+          name={property.name}
+          unit={property.unit}
+          type={property.type}
+          bedrooms={property.bedrooms}
+          bathrooms={property.bathrooms}
+          occupancy={property.occupancy}
+          address={property.address}
+          imageUrl={property.imageUrl}
+          completion={property.completion}
+          status={property.status}
         />
       ))}
     </div>

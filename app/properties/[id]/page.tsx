@@ -8,23 +8,8 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   const supabase = await getServerSupabaseClient()
 
   const { data: property, error } = await supabase
-    .from("properties")
-    .select(
-      `
-      *,
-      basic_info:property_basic_info(*),
-      safety:property_safety(*),
-      kitchen:property_kitchen(*),
-      bedrooms:property_bedrooms(*),
-      bathrooms:property_bathrooms(*),
-      technology:property_technology(*),
-      practical:property_practical(*),
-      location:property_location(*),
-      accessibility:property_accessibility(*),
-      images:property_images(*),
-      checklist_completion(*)
-    `
-    )
+    .from("properties_complete")
+    .select("*")
     .eq("id", params.id)
     .single()
 
