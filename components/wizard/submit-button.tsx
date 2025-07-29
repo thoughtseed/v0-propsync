@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useWizard } from "@/components/wizard/wizard-context"
 import { validateProperty } from "@/lib/utils/validate-property"
-import { createProperty, saveDraft } from "@/app/actions/property-actions"
+import { saveDraft } from "@/app/actions/property-actions"
 import { Loader2, Save, CheckCircle } from "lucide-react"
 
 export function SubmitButton() {
   const router = useRouter()
-  const { formData, isLastStep } = useWizard()
+  const { formData, isLastStep, finishProperty, isEditMode } = useWizard()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -27,15 +27,14 @@ export function SubmitButton() {
         return
       }
 
-      // Submit the property
-      const result = await createProperty(formData)
+      // Submit the property using the wizard context
+      const result = await finishProperty()
 
       if (!result.success) {
         throw new Error(result.error || "Failed to submit property")
       }
 
-      // Redirect to the property detail page
-      router.push(`/properties/${result.propertyId}`)
+      // The wizard context will handle the redirect
     } catch (err) {
       console.error("Error submitting property:", err)
       setError(err instanceof Error ? err.message : "An error occurred while submitting the property")
@@ -89,7 +88,7 @@ export function SubmitButton() {
             ) : (
               <CheckCircle className="mr-2 h-4 w-4" />
             )}
-            Submit Property
+            {isEditMode ? "Update Property" : "Submit Property"}
           </Button>
         )}
       </div>

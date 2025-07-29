@@ -174,4 +174,6 @@ export type WizardContextType = {
   errors: Record<string, string>
   enableValidation: () => void
   validationEnabled: boolean
+  isEditMode: boolean
+  editPropertyId: string | null
 }

@@ -32,6 +32,11 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
     }
   }
 
+  const handleEdit = () => {
+    // Navigate to the property wizard with the property ID for editing
+    router.push(`/properties/add?edit=${property.id}`)
+  }
+
   const formatPropertyType = (type: string) => {
     return type
       .split("_")
@@ -72,7 +77,7 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleEdit}>
             <Edit className="h-4 w-4 mr-2" />
             Edit
           </Button>

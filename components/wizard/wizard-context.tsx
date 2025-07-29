@@ -3,8 +3,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useFormValidation } from "@/hooks/use-form-validation"
-import { useRouter } from "next/navigation"
-import { createProperty } from "@/app/actions/property-actions"
+import { useRouter, useSearchParams } from "next/navigation"
+import { createProperty, updateProperty, loadPropertyForEdit } from "@/app/actions/property-actions"
 import { useToast } from "@/hooks/use-toast"
 import type { WizardCategory, WizardContextType, WizardFormData } from "@/lib/types/wizard-types"
 
@@ -263,6 +263,11 @@ export function WizardProvider({ children, initialData = {} }: { children: React
   const [currentStepId, setCurrentStepId] = useState(allSteps[0].id)
   const [isLoading, setIsLoading] = useState(false)
   const [validationEnabled, setValidationEnabled] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editPropertyId, setEditPropertyId] = useState<string | null>(null)
+
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Find current step and category
   const currentStep = allSteps.find((step) => step.id === currentStepId) || allSteps[0]
@@ -281,6 +286,36 @@ export function WizardProvider({ children, initialData = {} }: { children: React
 
   // Set up debounced auto-save
   const debouncedFormData = useDebounce(formData, 2000)
+
+  // Check if we're in edit mode from URL params
+  useEffect(() => {
+    const editParam = searchParams.get('edit')
+    if (editParam) {
+      setIsEditMode(true)
+      setEditPropertyId(editParam)
+      loadPropertyData(editParam)
+    }
+  }, [searchParams])
+
+  // Load property data for editing
+  const loadPropertyData = async (propertyId: string) => {
+    try {
+      setIsLoading(true)
+      const result = await loadPropertyForEdit(propertyId)
+      
+      if (result.success && result.data) {
+        setFormData(result.data)
+        // Clear localStorage to avoid conflicts
+        localStorage.removeItem("propertyWizardData")
+      } else {
+        console.error("Failed to load property for editing:", result.error)
+      }
+    } catch (error) {
+      console.error("Error loading property data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // Update form data
   const updateFormData = (data: Partial<WizardFormData>) => {
@@ -324,7 +359,6 @@ export function WizardProvider({ children, initialData = {} }: { children: React
     setValidationEnabled(true)
   }
 
-  const router = useRouter()
   const { toast } = useToast()
 
   // Save progress to localStorage and Supabase
@@ -350,7 +384,7 @@ export function WizardProvider({ children, initialData = {} }: { children: React
     }
   }
 
-  // Finish property creation - creates the actual property in database
+  // Finish property creation or update - creates/updates the actual property in database
   const finishProperty = async () => {
     try {
       // Validate all fields before submission
@@ -366,14 +400,31 @@ export function WizardProvider({ children, initialData = {} }: { children: React
       }
 
       setIsLoading(true)
-      const result = await createProperty(formData)
+      
+      let result
+      if (isEditMode && editPropertyId) {
+        // Update existing property
+        result = await updateProperty(editPropertyId, formData)
+        
+        if (result.success) {
+          toast({
+            title: "Property Updated!",
+            description: "Your property has been successfully updated.",
+          })
+        }
+      } else {
+        // Create new property
+        result = await createProperty(formData)
+        
+        if (result.success) {
+          toast({
+            title: "Property Created!",
+            description: "Your property has been successfully created.",
+          })
+        }
+      }
       
       if (result.success) {
-        toast({
-          title: "Property Created!",
-          description: "Your property has been successfully created.",
-        })
-
         // Clear local storage
         localStorage.removeItem("propertyWizardData")
 
@@ -382,17 +433,17 @@ export function WizardProvider({ children, initialData = {} }: { children: React
         return result
       } else {
         toast({
-          title: "Error Creating Property",
+          title: isEditMode ? "Error Updating Property" : "Error Creating Property",
           description: result.error || "An unknown error occurred",
           variant: "destructive",
         })
         return result
       }
     } catch (error) {
-      console.error("Failed to create property:", error)
+      console.error("Failed to finish property:", error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create property",
+        description: error instanceof Error ? error.message : "Failed to finish property",
         variant: "destructive",
       })
       return { success: false, error }
@@ -407,23 +458,25 @@ export function WizardProvider({ children, initialData = {} }: { children: React
       localStorage.setItem("propertyWizardData", JSON.stringify(debouncedFormData))
     }
 
-    if (Object.keys(debouncedFormData).length > 0) {
+    if (Object.keys(debouncedFormData).length > 0 && !isEditMode) {
       saveToLocalStorage()
     }
-  }, [debouncedFormData])
+  }, [debouncedFormData, isEditMode])
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount (only if not in edit mode)
   useEffect(() => {
-    const savedData = localStorage.getItem("propertyWizardData")
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData)
-        setFormData((prev) => ({ ...prev, ...parsedData }))
-      } catch (error) {
-        console.error("Failed to parse saved data:", error)
+    if (!isEditMode) {
+      const savedData = localStorage.getItem("propertyWizardData")
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData)
+          setFormData((prev) => ({ ...prev, ...parsedData }))
+        } catch (error) {
+          console.error("Failed to parse saved data:", error)
+        }
       }
     }
-  }, [])
+  }, [isEditMode])
 
   // Mark steps as completed based on form data
   const categoriesWithStatus = wizardCategories.map((category) => {
@@ -459,7 +512,7 @@ export function WizardProvider({ children, initialData = {} }: { children: React
         isFirstStep,
         isLastStep,
         saveProgress,
-        finishProperty, // Add the new function to the context
+        finishProperty,
         isLoading,
         progress,
         validateStep,
@@ -467,6 +520,8 @@ export function WizardProvider({ children, initialData = {} }: { children: React
         errors,
         enableValidation,
         validationEnabled,
+        isEditMode,
+        editPropertyId,
       }}
     >
       {children}

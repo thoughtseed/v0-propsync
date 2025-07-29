@@ -25,11 +25,12 @@ export function WizardDesktopLayout({ children }: WizardDesktopLayoutProps) {
     isLastStep,
     progress,
     saveProgress,
-    finishProperty, // Add the new finishProperty
+    finishProperty,
     isLoading,
     errors,
     enableValidation,
     validationEnabled,
+    isEditMode,
   } = useWizard()
 
   const hasErrors = validationEnabled && Object.keys(errors).length > 0
@@ -44,7 +45,7 @@ export function WizardDesktopLayout({ children }: WizardDesktopLayoutProps) {
       {/* Sidebar */}
       <aside className="w-80 border-r border-gray-200 bg-white flex flex-col h-full">
         <div className="p-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold">Add New Property</h1>
+          <h1 className="text-xl font-semibold">{isEditMode ? "Edit Property" : "Add New Property"}</h1>
           <div className="flex items-center justify-between mt-2">
             <span className="text-sm text-gray-500">{progress}% complete</span>
             <Button variant="outline" size="sm" className="text-xs" onClick={() => saveProgress()} disabled={isLoading}>
@@ -129,7 +130,7 @@ export function WizardDesktopLayout({ children }: WizardDesktopLayoutProps) {
             onClick={isLastStep ? () => finishProperty() : handleNextClick}
             className={isLastStep ? "bg-green-600 hover:bg-green-700" : ""} 
           >
-            {isLastStep ? (isLoading ? "Creating..." : "Finish") : "Next"}
+            {isLastStep ? (isLoading ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update" : "Finish")) : "Next"}
             {isLastStep ? 
               (isLoading ? 
                 <div className="h-4 w-4 ml-1 animate-spin rounded-full border-b-2 border-white"></div> : 
