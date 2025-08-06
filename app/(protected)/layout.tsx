@@ -1,9 +1,10 @@
 import type React from "react"
 import { redirect } from "next/navigation"
 import { getServerSupabaseClient } from "@/lib/supabase/server"
+import { AuthSetupCheck } from "@/components/auth/auth-setup-check"
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await getServerSupabaseClient()
+  const supabase = getServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -15,5 +16,10 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     redirect("/auth/login")
   }
 
-  return <>{children}</>
+  return (
+    <>
+      <AuthSetupCheck />
+      {children}
+    </>
+  )
 }

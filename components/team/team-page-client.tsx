@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { Search, Mail, Phone, Building2, Edit, Trash2, UserPlus } from "lucide-react"
 
 // Define the team member type based on our server action
@@ -64,10 +65,11 @@ export function TeamPageClient({ initialMembers }: TeamPageClientProps) {
         </div>
       </div>
 
-      <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">All Team Members</TabsTrigger>
-        </TabsList>
+      <div className="relative">
+        <Tabs defaultValue="all">
+          <TabsList>
+            <TabsTrigger value="all">All Team Members</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="all" className="space-y-6 pt-4">
           {isMobile ? (
@@ -177,7 +179,12 @@ export function TeamPageClient({ initialMembers }: TeamPageClientProps) {
             </div>
           )}
         </TabsContent>
-      </Tabs>
+        </Tabs>
+        <ComingSoonOverlay 
+          title="Team Management Coming Soon"
+          description="Advanced team collaboration and management features are being developed. Soon you'll have powerful tools to manage your team effectively."
+        />
+      </div>
     </div>
   )
 }

@@ -55,7 +55,7 @@ export const sampleProperty = {
   },
 
   // Bedrooms
-  bedrooms: {
+  bedroom_details: {
     bed_configurations: "King size (180x200cm)",
     extra_bedding_storage: "Closet top shelf",
     mattress_type: "Luxury pocket spring, medium firm",
@@ -71,7 +71,7 @@ export const sampleProperty = {
   },
 
   // Bathrooms
-  bathrooms: {
+  bathroom_details: {
     shower_bath_configuration: "Walk-in rainfall shower",
     towel_count: "4 bath, 4 hand, 2 face (luxury cotton)",
     toiletries_provided: ["Shampoo", "Conditioner", "Body wash", "Soap", "Hand soap", "Lotion"],

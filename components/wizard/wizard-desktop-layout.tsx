@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Save, Check, ChevronDown, AlertTriangle } fr
 import { cn } from "@/lib/utils"
 import type { WizardCategory, WizardStep } from "@/lib/types/wizard-types"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { TestDataPrefillButtons } from "./test-data-prefill-buttons"
 
 interface WizardDesktopLayoutProps {
   children: ReactNode
@@ -67,11 +68,15 @@ export function WizardDesktopLayout({ children }: WizardDesktopLayoutProps) {
           ))}
         </div>
 
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <div className="text-sm text-gray-500 mb-2">Property Preview</div>
-          <div className="bg-white border border-gray-200 rounded-lg p-3">
-            <PropertyPreview />
+        <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-4">
+          <div>
+            <div className="text-sm text-gray-500 mb-2">Property Preview</div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <PropertyPreview />
+            </div>
           </div>
+          
+          <TestDataPrefillButtons className="" />
         </div>
       </aside>
 

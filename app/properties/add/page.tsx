@@ -10,9 +10,12 @@ import { PracticalLivingStep } from "@/components/wizard/steps/practical-living-
 import { LocationLifestyleStep } from "@/components/wizard/steps/location-lifestyle-step"
 import { AccessibilitySustainabilityStep } from "@/components/wizard/steps/accessibility-sustainability-step"
 import { useWizard } from "@/components/wizard/wizard-context"
+// MVP: RoleGate removed - single admin user has full access
+// For beta: restore RoleGate import from components/_archived/auth/role-gate
 
 export default function AddPropertyPage() {
   return (
+    // MVP: Direct access for authenticated users - no role gate needed
     <WizardLayout>
       <WizardStepContent />
     </WizardLayout>

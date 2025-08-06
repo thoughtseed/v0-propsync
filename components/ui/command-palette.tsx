@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { isCurrentUserAdminClient } from "@/lib/utils/auth-utils-client"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import {
@@ -32,6 +33,7 @@ interface CommandPaletteItem {
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -46,7 +48,15 @@ export function CommandPalette() {
     return () => document.removeEventListener("keydown", down)
   }, [])
 
-  const commands: CommandPaletteItem[] = [
+  useEffect(() => {
+    async function checkAdminStatus() {
+      const adminStatus = await isCurrentUserAdminClient()
+      setIsAdmin(adminStatus)
+    }
+    checkAdminStatus()
+  }, [])
+
+  const baseCommands: CommandPaletteItem[] = [
     {
       icon: Home,
       name: "Go to Dashboard",
@@ -65,6 +75,9 @@ export function CommandPalette() {
         setOpen(false)
       },
     },
+  ]
+
+  const adminCommands: CommandPaletteItem[] = [
     {
       icon: Plus,
       name: "Add New Property",
@@ -74,6 +87,9 @@ export function CommandPalette() {
         setOpen(false)
       },
     },
+  ]
+
+  const otherCommands: CommandPaletteItem[] = [
     {
       icon: Search,
       name: "Search Properties",
@@ -168,6 +184,13 @@ export function CommandPalette() {
         setOpen(false)
       },
     },
+  ]
+
+  // Combine commands based on user role
+  const commands: CommandPaletteItem[] = [
+    ...baseCommands,
+    ...(isAdmin ? adminCommands : []),
+    ...otherCommands,
   ]
 
   return (

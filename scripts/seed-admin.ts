@@ -1,4 +1,8 @@
+import { config } from 'dotenv'
 import { seedAdminUser } from "../lib/seed-data/seed-admin"
+
+// Load environment variables from .env.local
+config({ path: '.env.local' })
 
 async function main() {
   console.log("Seeding admin user...")

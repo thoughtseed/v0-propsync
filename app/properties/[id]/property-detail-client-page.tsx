@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Edit, Trash, Home, Bed, Bath, Users, Calendar } from "lucide-react"
+// MVP: RoleGate removed - single admin user has full access
+// For beta: restore RoleGate import from components/_archived/auth/role-gate
 
 // Define a type for the property to pass from server to client
 type Property = any // Replace with a more specific type if available
@@ -44,18 +46,21 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
       .join(" ")
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-500"
-      case "maintenance":
-        return "bg-amber-500"
-      case "inactive":
-        return "bg-gray-500"
-      case "pending":
-        return "bg-blue-500"
-      default:
-        return "bg-gray-500"
+  // Format last updated date
+  const formatLastUpdated = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24)
+      if (diffInDays < 7) {
+        return `${diffInDays}d ago`
+      } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      }
     }
   }
 
@@ -71,11 +76,12 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
           <h1 className="text-2xl font-bold">
             {property.building_name} - Unit {property.unit_number}
           </h1>
-          <Badge className={getStatusColor(property.status)}>
-            {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
+          <Badge className="bg-gray-600 text-white">
+            Last updated {formatLastUpdated(property.updated_at)}
           </Badge>
         </div>
 
+        {/* MVP: Always show Edit/Delete buttons for authenticated users */}
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleEdit}>
             <Edit className="h-4 w-4 mr-2" />
@@ -182,8 +188,10 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
                     <div>
                       <h3 className="text-md font-semibold">Smoke Detectors</h3>
                       <ul className="list-disc pl-5">
-                        {property.smoke_detectors.map((item: string, index: number) => (
-                          <li key={index}>{item}</li>
+                        {property.smoke_detectors.map((detector: any, index: number) => (
+                          <li key={index}>
+                            {typeof detector === 'string' ? detector : `${detector.location}${detector.expiry_date ? ` (Expiry: ${detector.expiry_date})` : ''}`}
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -312,11 +320,11 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Created</span>
-                  <span>{new Date(property.created_at).toLocaleDateString()}</span>
+                  <span>{new Date(property.created_at).toLocaleDateString('en-US')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Updated</span>
-                  <span>{new Date(property.updated_at).toLocaleDateString()}</span>
+                  <span>{new Date(property.updated_at).toLocaleDateString('en-US')}</span>
                 </div>
               </div>
             </CardContent>
@@ -325,4 +333,4 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
       </div>
     </div>
   )
-} 
+}

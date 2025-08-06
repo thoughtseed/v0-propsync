@@ -2,76 +2,66 @@ import { z } from "zod"
 
 // Basic Information Schemas
 export const identityLocationSchema = z.object({
-  property_reference: z.string().min(1, "Property reference is required"),
-  building_name: z.string().min(1, "Building name is required"),
-  unit_number: z.string().min(1, "Unit number is required"),
-  full_address: z.string().min(10, "Please provide a complete address"),
-  property_type: z.string().min(1, "Property type is required"),
+  property_reference: z.string().optional(),
+  building_name: z.string().optional(),
+  unit_number: z.string().optional(),
+  full_address: z.string().optional(),
+  property_type: z.string().optional(),
 })
 
 export const spaceCapacitySchema = z.object({
   square_meters: z
-    .number({ invalid_type_error: "Square meters must be a number" })
-    .positive("Square meters must be positive")
-    .or(z.string().regex(/^\d+$/).transform(Number))
+    .number()
+    .or(z.string().transform(Number))
     .optional(),
   bedrooms: z
-    .number({ invalid_type_error: "Bedrooms must be a number" })
-    .min(0, "Bedrooms cannot be negative")
-    .or(z.string().regex(/^\d+$/).transform(Number)),
+    .number()
+    .or(z.string().transform(Number))
+    .optional(),
   bathrooms: z
-    .number({ invalid_type_error: "Bathrooms must be a number" })
-    .min(0, "Bathrooms cannot be negative")
-    .or(z.string().regex(/^\d+$/).transform(Number)),
+    .number()
+    .or(z.string().transform(Number))
+    .optional(),
   max_occupancy: z
-    .number({ invalid_type_error: "Maximum occupancy must be a number" })
-    .min(1, "Maximum occupancy must be at least 1")
-    .or(z.string().regex(/^\d+$/).transform(Number)),
+    .number()
+    .or(z.string().transform(Number))
+    .optional(),
 })
 
 export const descriptionStorySchema = z.object({
-  year_built: z
-    .string()
-    .regex(/^\d{4}$/, "Year built must be a 4-digit year")
-    .optional(),
-  year_renovated: z
-    .string()
-    .regex(/^\d{4}$/, "Year renovated must be a 4-digit year")
-    .optional(),
-  description: z
-    .string()
-    .min(50, "Description should be at least 50 characters")
-    .max(2000, "Description should not exceed 2000 characters"),
+  year_built: z.string().optional(),
+  year_renovated: z.string().optional(),
+  description: z.string().optional(),
 })
 
 export const visualImpressionSchema = z.object({
-  primary_photo: z.string().url("Primary photo must be a valid URL").optional(),
-  floor_plan: z.string().url("Floor plan must be a valid URL").optional(),
+  primary_photo: z.string().optional(),
+  floor_plan: z.string().optional(),
 })
 
 // Safety & Security Schemas
 export const smokeDetectorSchema = z.object({
-  location: z.string().min(1, "Location is required"),
+  location: z.string().optional(),
   expiry_date: z.string().optional(),
 })
 
 export const fireEmergencySchema = z.object({
   smoke_detectors: z.array(smokeDetectorSchema).optional(),
-  fire_extinguisher_location: z.string().min(1, "Fire extinguisher location is required"),
+  fire_extinguisher_location: z.string().optional(),
   fire_extinguisher_expiry: z.string().optional(),
   emergency_exit_plan: z.boolean().optional(),
-  first_aid_location: z.string().min(1, "First aid kit location is required"),
+  first_aid_location: z.string().optional(),
 })
 
 export const accessSecuritySchema = z.object({
-  door_lock_type: z.string().min(1, "Door lock type is required"),
+  door_lock_type: z.string().optional(),
   smart_lock_code: z.string().optional(),
-  building_security: z.string().min(1, "Building security information is required"),
+  building_security: z.string().optional(),
   cctv_coverage: z.array(z.string()).optional(),
 })
 
 export const safetyFeaturesSchema = z.object({
-  emergency_contacts: z.string().min(1, "Emergency contacts are required"),
+  emergency_contacts: z.string().optional(),
   window_security: z.string().optional(),
   balcony_safety: z.string().optional(),
   child_safety_features: z.array(z.string()).optional(),
@@ -79,14 +69,14 @@ export const safetyFeaturesSchema = z.object({
 
 // Kitchen & Dining Schemas
 export const cookingEssentialsSchema = z.object({
-  major_appliances: z.array(z.string()).min(1, "At least one major appliance is required"),
+  major_appliances: z.array(z.string()).optional(),
   small_appliances: z.array(z.string()).optional(),
-  cookware_inventory: z.string().min(1, "Cookware inventory is required"),
-  dishware_count: z.string().min(1, "Dishware count is required"),
+  cookware_inventory: z.string().optional(),
+  dishware_count: z.string().optional(),
   dining_capacity: z
-    .number({ invalid_type_error: "Dining capacity must be a number" })
-    .min(1, "Dining capacity must be at least 1")
-    .or(z.string().regex(/^\d+$/).transform(Number)),
+    .number()
+    .or(z.string().transform(Number))
+    .optional(),
 })
 
 export const diningCookwareSchema = z.object({
@@ -99,18 +89,18 @@ export const diningCookwareSchema = z.object({
 export const specialKitchenSchema = z.object({
   special_features: z.string().optional(),
   counter_material: z.string().optional(),
-  kitchen_photos: z.array(z.string().url("Kitchen photo must be a valid URL")).optional(),
+  kitchen_photos: z.array(z.string()).optional(),
 })
 
 // Bedrooms & Bathrooms Schemas
 export const roomConfigSchema = z.object({
-  name: z.string().min(1, "Room name is required"),
-  size: z.string().min(1, "Bed size is required"),
-  type: z.string().min(1, "Bed type is required"),
+  name: z.string().optional(),
+  size: z.string().optional(),
+  type: z.string().optional(),
 })
 
 export const sleepSanctuarySchema = z.object({
-  bed_configurations: z.array(roomConfigSchema).min(1, "At least one bed configuration is required"),
+  bed_configurations: z.array(roomConfigSchema).optional(),
   extra_bedding_location: z.string().optional(),
   mattress_type: z.string().optional(),
   pillow_details: z.string().optional(),
@@ -125,8 +115,8 @@ export const bedroomComfortSchema = z.object({
 })
 
 export const bathroomBlissSchema = z.object({
-  shower_bath_config: z.string().min(1, "Shower/bath configuration is required"),
-  towel_details: z.string().min(1, "Towel details are required"),
+  shower_bath_config: z.string().optional(),
+  towel_details: z.string().optional(),
   toiletries_provided: z.array(z.string()).optional(),
   hair_dryer_available: z.boolean().optional(),
   hair_dryer_details: z.string().optional(),
@@ -142,8 +132,8 @@ export const bathroomFeaturesSchema = z.object({
 
 // Technology Schemas
 export const connectedLivingSchema = z.object({
-  wifi_network: z.string().min(1, "WiFi network name is required"),
-  wifi_password: z.string().min(1, "WiFi password is required"),
+  wifi_network: z.string().optional(),
+  wifi_password: z.string().optional(),
   internet_speed: z.string().optional(),
   smart_home_features: z.array(z.string()).optional(),
   router_location: z.string().optional(),
@@ -188,9 +178,9 @@ export const climateControlSchema = z.object({
 
 // Location & Lifestyle Schemas
 export const locationDistanceSchema = z.object({
-  type: z.string().min(1, "Location type is required"),
-  name: z.string().min(1, "Location name is required"),
-  distance: z.string().min(1, "Distance is required"),
+  type: z.string().optional(),
+  name: z.string().optional(),
+  distance: z.string().optional(),
   walkTime: z.string().optional(),
 })
 

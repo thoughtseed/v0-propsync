@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { Search, X, Filter, Building2, Bed, Bath, Users, DollarSign } from "lucide-react"
 import type { Property } from "@/lib/types"
 
@@ -203,7 +204,7 @@ export default function SearchPage() {
           </Card>
 
           {/* Search results */}
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-6 relative">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-medium">
                 {searchResults.length} {searchResults.length === 1 ? "property" : "properties"} found
@@ -227,9 +228,27 @@ export default function SearchPage() {
               className={isMobile ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"}
             >
               {searchResults.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCard 
+                  key={property.id}
+                  id={property.id}
+                  reference={property.property_reference}
+                  name={property.building_name}
+                  unit={property.unit_number}
+                  type={property.property_type}
+                  bedrooms={property.bedrooms}
+                  bathrooms={property.bathrooms}
+                  occupancy={property.max_occupancy}
+                  address={property.full_address}
+                  imageUrl={property.primary_photo}
+                  completion={property.checklist_completion.overall}
+                  status={property.status}
+                />
               ))}
             </div>
+            <ComingSoonOverlay 
+              title="Advanced Search Coming Soon"
+              description="Enhanced search and filtering capabilities are under development. Soon you'll have powerful tools to find exactly what you're looking for."
+            />
           </div>
         </div>
       </div>

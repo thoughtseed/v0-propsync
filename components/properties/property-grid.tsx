@@ -15,13 +15,16 @@ interface Property {
   completion: number
   status: string
   createdAt: string
+  updatedAt: string
 }
 
 interface PropertyGridProps {
   properties: Property[]
+  onEdit?: (id: string) => void
+  onDelete?: (id: string) => void
 }
 
-export function PropertyGrid({ properties }: PropertyGridProps) {
+export function PropertyGrid({ properties, onEdit, onDelete }: PropertyGridProps) {
   if (!properties || properties.length === 0) {
     return (
       <div className="text-center py-12">
@@ -47,6 +50,7 @@ export function PropertyGrid({ properties }: PropertyGridProps) {
           imageUrl={property.imageUrl}
           completion={property.completion}
           status={property.status}
+          updatedAt={property.updatedAt}
         />
       ))}
     </div>

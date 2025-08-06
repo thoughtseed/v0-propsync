@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export function AuthForm() {
   const [email, setEmail] = useState("")
@@ -23,6 +24,7 @@ export function AuthForm() {
   const [message, setMessage] = useState<string | null>(null)
   const router = useRouter()
   const supabase = getSupabaseClient()
+  const { toast } = useToast()
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,8 +45,18 @@ export function AuthForm() {
       if (error) throw error
 
       setMessage("Check your email for the confirmation link.")
+      toast({
+        title: "Success",
+        description: "Check your email for the confirmation link.",
+      })
     } catch (error: any) {
-      setError(error.message || "An error occurred during sign up.")
+      const errorMessage = error.message || "An error occurred during sign up."
+      setError(errorMessage)
+      toast({
+        title: "Sign Up Failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -63,10 +75,20 @@ export function AuthForm() {
 
       if (error) throw error
 
+      toast({
+        title: "Welcome back!",
+        description: "You have been successfully logged in.",
+      })
       router.push("/properties")
       router.refresh()
     } catch (error: any) {
-      setError(error.message || "Invalid login credentials.")
+      const errorMessage = error.message || "Invalid login credentials."
+      setError(errorMessage)
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }

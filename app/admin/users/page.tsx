@@ -5,11 +5,23 @@ import { DataTable } from "@/components/admin/users-table"
 export default async function UsersPage() {
   const user = await getServerUser()
 
-  if (!user || user.profile?.role !== "admin") {
+  if (!user) {
     redirect("/properties")
   }
 
-  const supabase = await getServerSupabaseClient()
+  const supabase = getServerSupabaseClient()
+  
+  // Check if current user is admin
+  const { data: currentUserProfile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (!currentUserProfile || currentUserProfile.role !== "admin") {
+    redirect("/properties")
+  }
+
   const { data: users, error } = await supabase.from("users").select("*").order("created_at", { ascending: false })
 
   if (error) {

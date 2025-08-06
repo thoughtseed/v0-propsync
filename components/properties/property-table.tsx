@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+// MVP: RoleGate removed - single admin user has full access
+// For beta: restore RoleGate import from components/_archived/auth/role-gate
+import { isCurrentUserAdminClient } from "@/lib/utils/auth-utils-client"
 
 interface Property {
   id: string
@@ -29,6 +32,7 @@ interface Property {
   completion: number
   status: string
   createdAt: string
+  updatedAt: string
 }
 
 interface PropertyTableProps {
@@ -42,22 +46,32 @@ export function PropertyTable({ properties, onEdit, onDelete }: PropertyTablePro
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [sortField, setSortField] = useState<keyof Property>("createdAt")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+  const [isAdmin, setIsAdmin] = useState<boolean>(true) // MVP: Always true for authenticated users
 
-  // Get status badge color
-  const getStatusColor = (status: string) => {
-    if (!status) return "bg-gray-500"
+  // MVP: Admin status check simplified - all authenticated users are admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const adminStatus = await isCurrentUserAdminClient() // Always returns true for authenticated users
+      setIsAdmin(adminStatus)
+    }
+    checkAdminStatus()
+  }, [])
 
-    switch (status) {
-      case "active":
-        return "bg-green-500"
-      case "maintenance":
-        return "bg-amber-500"
-      case "inactive":
-        return "bg-gray-500"
-      case "pending":
-        return "bg-blue-500"
-      default:
-        return "bg-gray-500"
+  // Format last updated date
+  const formatLastUpdated = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24)
+      if (diffInDays < 7) {
+        return `${diffInDays}d ago`
+      } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      }
     }
   }
 
@@ -191,8 +205,8 @@ export function PropertyTable({ properties, onEdit, onDelete }: PropertyTablePro
               <TableCell className="text-center">{property.bedrooms}</TableCell>
               <TableCell className="text-center">{property.bathrooms}</TableCell>
               <TableCell>
-                <Badge className={getStatusColor(property.status)}>
-                  {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : "Unknown"}
+                <Badge className="bg-gray-600 text-white">
+                  Last updated {formatLastUpdated(property.updatedAt)}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -214,17 +228,21 @@ export function PropertyTable({ properties, onEdit, onDelete }: PropertyTablePro
                       <Eye className="h-4 w-4 mr-2" />
                       View
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => (onEdit ? onEdit(property.id) : router.push(`/properties/${property.id}/edit`))}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600" onClick={() => onDelete && onDelete(property.id)}>
-                      <Trash className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() => (onEdit ? onEdit(property.id) : router.push(`/properties/${property.id}/edit`))}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-red-600" onClick={() => onDelete && onDelete(property.id)}>
+                          <Trash className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

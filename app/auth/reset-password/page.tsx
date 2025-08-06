@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState("")
@@ -18,6 +19,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const supabase = getSupabaseClient()
+  const { toast } = useToast()
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,8 +34,18 @@ export default function ResetPasswordPage() {
       if (error) throw error
 
       setMessage("Check your email for the password reset link.")
+      toast({
+        title: "Reset Link Sent",
+        description: "Check your email for the password reset link.",
+      })
     } catch (error: any) {
-      setError(error.message || "An error occurred while sending the reset link.")
+      const errorMessage = error.message || "An error occurred while sending the reset link."
+      setError(errorMessage)
+      toast({
+        title: "Reset Failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }

@@ -31,8 +31,8 @@ export async function seedAdminUser() {
     }
 
     // Create the admin user
-    const adminEmail = "admin@coproperties.com"
-    const adminPassword = "Admin123!" // This should be changed after first login
+    const adminEmail = "fais@coproperty.space"
+    const adminPassword = "Faisyakat456*" // Actual admin credentials
     const adminName = "System Administrator"
 
     // Create the user in Supabase Auth

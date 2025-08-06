@@ -17,19 +17,19 @@ interface ResponsiveLayoutProps {
   children: React.ReactNode
 }
 
-function DesktopHeaderActions() {
-  return (
-    <div className="flex items-center space-x-2">
-      <KeyboardShortcutHelp />
-      <Button variant="outline" size="sm">
-        Help
-      </Button>
-      <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-        <span className="text-white text-sm font-medium">SC</span>
-      </div>
-    </div>
-  )
-}
+// function DesktopHeaderActions() {
+//   return (
+//     <div className="flex items-center space-x-2">
+//       <KeyboardShortcutHelp />
+//       <Button variant="outline" size="sm">
+//         Help
+//       </Button>
+//       <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+//         <span className="text-white text-sm font-medium">SC</span>
+//       </div>
+//     </div>
+//   )
+// }
 
 export function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -119,7 +119,7 @@ export function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
               <h1 className="text-2xl font-semibold text-gray-900">{getPageTitle()}</h1>
               <div className="flex items-center space-x-4">
                 {/* Desktop header actions would go here */}
-                <DesktopHeaderActions />
+                {/* <DesktopHeaderActions /> */}
               </div>
             </div>
           </header>

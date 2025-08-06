@@ -1,14 +1,15 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useRef } from "react"
+import Image from "next/image"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Bed, Bath, Users, MapPin, Edit, Trash, Star, Eye } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { isCurrentUserAdminClient } from "@/lib/utils/auth-utils-client"
 
 interface SwipeablePropertyCardProps {
   id: string
@@ -21,6 +22,7 @@ interface SwipeablePropertyCardProps {
   imageUrl?: string
   completion: number
   status: string
+  updatedAt: string
   onEdit?: () => void
   onDelete?: () => void
 }
@@ -36,6 +38,7 @@ export function SwipeablePropertyCard({
   imageUrl,
   completion,
   status,
+  updatedAt,
   onEdit,
   onDelete,
 }: SwipeablePropertyCardProps) {
@@ -44,22 +47,32 @@ export function SwipeablePropertyCard({
   const startX = useRef(0)
   const currentX = useRef(0)
   const [isSwiping, setIsSwiping] = useState(false)
+  const [isAdmin, setIsAdmin] = useState<boolean>(false)
 
-  // Get status badge color
-  const getStatusColor = (status: string) => {
-    if (!status) return "bg-gray-500"
+  // Check admin status on component mount
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const adminStatus = await isCurrentUserAdminClient()
+      setIsAdmin(adminStatus)
+    }
+    checkAdminStatus()
+  }, [])
 
-    switch (status) {
-      case "active":
-        return "bg-green-500"
-      case "maintenance":
-        return "bg-amber-500"
-      case "inactive":
-        return "bg-gray-500"
-      case "pending":
-        return "bg-blue-500"
-      default:
-        return "bg-gray-500"
+  // Format last updated date
+  const formatLastUpdated = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24)
+      if (diffInDays < 7) {
+        return `${diffInDays}d ago`
+      } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      }
     }
   }
 
@@ -126,18 +139,22 @@ export function SwipeablePropertyCard({
         >
           <Eye className="h-5 w-5" />
         </button>
-        <button
-          onClick={handleEdit}
-          className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600"
-        >
-          <Edit className="h-5 w-5" />
-        </button>
-        <button
-          onClick={handleDelete}
-          className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600"
-        >
-          <Trash className="h-5 w-5" />
-        </button>
+        {isAdmin && (
+          <>
+            <button
+              onClick={handleEdit}
+              className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600"
+            >
+              <Edit className="h-5 w-5" />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600"
+            >
+              <Trash className="h-5 w-5" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Card */}
@@ -151,9 +168,11 @@ export function SwipeablePropertyCard({
       >
         <div className="flex items-center p-3 border-b">
           <div className="h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
-            <img
+            <Image
               src={imageUrl || "/placeholder.svg?height=200&width=200&query=property"}
               alt={`${name} ${unit}`}
+              width={64}
+              height={64}
               className="h-full w-full object-cover"
             />
           </div>
@@ -163,8 +182,8 @@ export function SwipeablePropertyCard({
                 <h3 className="font-medium text-gray-900 truncate">{name}</h3>
                 <p className="text-sm text-gray-500">Unit {unit}</p>
               </div>
-              <Badge className={getStatusColor(status)}>
-                {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown"}
+              <Badge className="bg-gray-600 text-white">
+                Last updated {formatLastUpdated(updatedAt)}
               </Badge>
             </div>
             <div className="flex items-center text-xs text-gray-500 mt-1">

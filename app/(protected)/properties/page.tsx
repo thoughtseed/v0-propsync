@@ -9,6 +9,9 @@ import { Search, Plus, Filter } from "lucide-react"
 import Link from "next/link"
 import { ResponsiveLayout } from "@/components/layout/responsive-layout"
 import { ViewSwitcher } from "@/components/properties/view-switcher"
+import { PropertiesPageClient } from "@/app/(protected)/properties/properties-page-client"
+// MVP: RoleGate removed - single admin user has full access
+// For beta: restore RoleGate import from components/_archived/auth/role-gate
 
 // Define the property interface to match the component requirements
 interface FormattedProperty {
@@ -25,12 +28,13 @@ interface FormattedProperty {
   completion: number
   status: string
   createdAt: string
+  updatedAt: string
 }
 
 export const dynamic = "force-dynamic"
 
 export default async function PropertiesPage() {
-  const supabase = await getServerSupabaseClient()
+  const supabase = getServerSupabaseClient()
 
   console.log("Fetching properties data from database...")
   
@@ -79,6 +83,7 @@ export default async function PropertiesPage() {
       completion: property.checklist_completion?.overall_completion || 0,
       status: property.status,
       createdAt: property.created_at,
+      updatedAt: property.updated_at,
     }))
     
     return renderPropertiesPage(formattedProperties)
@@ -117,6 +122,7 @@ export default async function PropertiesPage() {
     completion: property.overall_completion || 0,
     status: property.status,
     createdAt: property.created_at,
+    updatedAt: property.updated_at,
   }))
 
   return renderPropertiesPage(formattedProperties)
@@ -128,6 +134,7 @@ function renderPropertiesPage(formattedProperties: FormattedProperty[]) {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-2xl font-bold">Properties</h1>
+          {/* MVP: Always show Add Property button for authenticated users */}
           <Link href="/properties/add">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -149,11 +156,10 @@ function renderPropertiesPage(formattedProperties: FormattedProperty[]) {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="all">All Properties</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="maintenance">Maintenance</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
             </Select>
 
@@ -168,6 +174,7 @@ function renderPropertiesPage(formattedProperties: FormattedProperty[]) {
           {formattedProperties.length === 0 ? (
             <div className="text-center py-12 border rounded-lg bg-gray-50">
               <p className="text-gray-500">No properties found</p>
+              {/* MVP: Always show Add New Property button for authenticated users */}
               <Link href="/properties/add">
                 <Button className="mt-4">
                   <Plus className="h-4 w-4 mr-2" />
@@ -189,6 +196,7 @@ function renderPropertiesPage(formattedProperties: FormattedProperty[]) {
                 imageUrl={property.imageUrl}
                 completion={property.completion}
                 status={property.status}
+                updatedAt={property.updatedAt}
               />
             ))
           )}

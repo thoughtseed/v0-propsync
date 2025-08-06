@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("")
@@ -20,6 +21,7 @@ export default function UpdatePasswordPage() {
   const [message, setMessage] = useState<string | null>(null)
   const router = useRouter()
   const supabase = getSupabaseClient()
+  const { toast } = useToast()
 
   useEffect(() => {
     // Check if the user is authenticated via the recovery flow
@@ -41,7 +43,13 @@ export default function UpdatePasswordPage() {
     setError(null)
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.")
+      const errorMessage = "Passwords do not match."
+      setError(errorMessage)
+      toast({
+        title: "Validation Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
@@ -54,11 +62,21 @@ export default function UpdatePasswordPage() {
       if (error) throw error
 
       setMessage("Password updated successfully. Redirecting to login...")
+      toast({
+        title: "Password Updated",
+        description: "Your password has been updated successfully. Redirecting to login...",
+      })
       setTimeout(() => {
         router.push("/auth/login")
       }, 2000)
     } catch (error: any) {
-      setError(error.message || "An error occurred while updating the password.")
+      const errorMessage = error.message || "An error occurred while updating the password."
+      setError(errorMessage)
+      toast({
+        title: "Update Failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }

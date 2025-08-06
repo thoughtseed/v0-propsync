@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
 import { FileText, Download, Calendar, Clock, Plus, Search } from "lucide-react"
 
 export default function ReportsPage() {
@@ -30,12 +31,13 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="saved" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="saved">Saved Reports</TabsTrigger>
-            <TabsTrigger value="scheduled">Scheduled Reports</TabsTrigger>
-            <TabsTrigger value="generate">Generate Report</TabsTrigger>
-          </TabsList>
+        <div className="relative">
+          <Tabs defaultValue="saved" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="saved">Saved Reports</TabsTrigger>
+              <TabsTrigger value="scheduled">Scheduled Reports</TabsTrigger>
+              <TabsTrigger value="generate">Generate Report</TabsTrigger>
+            </TabsList>
 
           <TabsContent value="saved" className="space-y-6 pt-4">
             <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
@@ -274,7 +276,12 @@ export default function ReportsPage() {
               </CardFooter>
             </Card>
           </TabsContent>
-        </Tabs>
+          </Tabs>
+          <ComingSoonOverlay 
+            title="Reports Coming Soon"
+            description="Comprehensive reporting and document generation features are being developed. Soon you'll be able to create detailed property reports with ease."
+          />
+        </div>
       </div>
     </ResponsiveLayout>
   )

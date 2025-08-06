@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight, Save, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { TestDataPrefillButtons } from "./test-data-prefill-buttons"
 
 interface WizardMobileLayoutProps {
   children: ReactNode
@@ -79,7 +80,10 @@ export function WizardMobileLayout({ children }: WizardMobileLayoutProps) {
       )}
 
       {/* Scrollable Content */}
-      <main className="flex-1 overflow-y-auto p-4 pb-24">{children}</main>
+      <main className="flex-1 overflow-y-auto p-4 pb-24">
+        <TestDataPrefillButtons className="mb-6" />
+        {children}
+      </main>
 
       {/* Fixed Footer */}
       <footer className="border-t border-gray-200 bg-white px-4 py-3 flex items-center justify-between z-10">

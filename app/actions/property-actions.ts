@@ -1,11 +1,12 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getAdminSupabaseClient } from "@/lib/supabase/server"
+import { getAdminSupabaseClient, getServerUser } from "@/lib/supabase/server"
 import { calculateCategoryCompletion, calculateOverallCompletion } from "@/lib/utils/checklist-completion"
+import { isCurrentUserAdmin, logAuthError, canCreateProperties } from "@/lib/utils/auth-utils"
+import { logPropertyError, logDatabaseError, debugLog, withErrorLogging } from "@/lib/utils/error-logging"
 import type { WizardFormData } from "@/lib/types/wizard-types"
 import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/lib/types/supabase"
 
 // Create a direct admin client that completely bypasses Next.js cookies and RLS
 // Using any type to avoid TypeScript errors with direct client
@@ -59,28 +60,61 @@ function safeJsonbValue(value: any) {
 
 // Property creation function that gets a real user ID first
 export async function createProperty(formData: WizardFormData) {
+  debugLog('createProperty', 'enter', { formDataKeys: Object.keys(formData) }, 'PropertyActions')
+  
   try {
-    console.log("Starting property creation with direct admin client");
+    console.log("[PROPERTY_CREATE] Starting property creation process");
+    
+    // MVP: Authorization check removed - single admin user has full access
+    // For beta: restore authorization check with canCreateProperties()
+    // const canCreate = await canCreateProperties()
+    // if (!canCreate) {
+    //   const currentUser = await getServerUser()
+    //   const userEmail = currentUser?.email || 'unknown'
+    //   const userRole = currentUser?.profile?.role || 'unknown'
+    //   
+    //   logAuthError('createProperty', new Error('Unauthorized property creation attempt'), {
+    //     userEmail,
+    //     userRole,
+    //     requiredRole: 'admin',
+    //     action: 'create_property'
+    //   })
+    //   
+    //   console.error(`[PROPERTY_CREATE] AUTHORIZATION FAILED: User ${userEmail} with role '${userRole}' attempted to create property. Only admin users can create properties.`)
+    //   
+    // MVP: Commented out for single admin user setup - restore for beta
+    // if (!canCreateProperties) {
+    //   return {
+    //     success: false,
+    //     error: "Only admin users can create properties. Please contact your administrator.",
+    //     details: {
+    //       userRole,
+    //       requiredRole: 'admin',
+    //       action: 'create_property'
+    //     }
+    //   };
+    // }
+    
+    console.log("[PROPERTY_CREATE] Authorization check passed - user is admin");
     
     // Use direct admin client with service role that completely bypasses RLS
     const supabase = createDirectAdminClient()
     
-    // First get a valid user ID from the database
-    console.log("Fetching valid users from database...");
-    const { data: users, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .limit(1);
-    
-    if (userError || !users || users.length === 0) {
-      console.error("No users found in the database:", userError);
-      throw new Error("No valid users found in the database. Please ensure at least one user exists.");
+    // Get the current admin user's ID
+    const currentUser = await getServerUser()
+    if (!currentUser) {
+      logAuthError('createProperty', new Error('No authenticated user found'))
+      console.error("[PROPERTY_CREATE] No authenticated user found");
+      return {
+        success: false,
+        error: "Authentication required to create properties"
+      }
     }
     
-    // Use the first user's ID if form data doesn't specify a user_id
-    const userId = formData.user_id || users[0].id;
+    const userId = currentUser.id;
+    console.log(`[PROPERTY_CREATE] Creating property for admin user: ${currentUser.email}`);
     
-    console.log("Creating property record with user ID:", userId);
+    console.log(`[PROPERTY_CREATE] Creating property record with admin user ID: ${userId}`);
     
     // Calculate completion percentages for each category
     const basicInfoFields = ['property_reference', 'building_name', 'unit_number', 'full_address', 
@@ -295,7 +329,9 @@ export async function createProperty(formData: WizardFormData) {
         .single();
 
       if (propertyError) {
-        console.error("Error creating property:", propertyError);
+        logDatabaseError('insertProperty', propertyError, {
+          data: { formDataKeys: Object.keys(formData) }
+        })
         throw propertyError;
       }
 
@@ -312,12 +348,20 @@ export async function createProperty(formData: WizardFormData) {
       throw error;
     }
   } catch (error) {
-    console.error("Error in property creation process:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to create property",
-      details: JSON.stringify(error)
-    };
+    const errorDetails = logPropertyError('createProperty', error as Error, {
+      userId: formData.user_id,
+      data: { formDataKeys: Object.keys(formData) }
+    })
+    
+    console.error("[PROPERTY_CREATE] Critical error during property creation:", errorDetails)
+    
+    return {
+      success: false,
+      error: "Failed to create property. Please check the console for detailed error information.",
+      errorDetails
+    }
+  } finally {
+    debugLog('createProperty', 'exit', null, 'PropertyActions')
   }
 }
 
@@ -325,7 +369,7 @@ export async function createProperty(formData: WizardFormData) {
 export async function saveDraft(formData: WizardFormData) {
   try {
     // Use admin client to bypass RLS policies
-    const supabase = await getAdminSupabaseClient() as any;
+    const supabase = getAdminSupabaseClient() as any;
 
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
@@ -375,7 +419,7 @@ export async function saveDraft(formData: WizardFormData) {
 export async function loadDraft(draftId: string) {
   try {
     // Use admin client to bypass RLS policies
-    const supabase = await getAdminSupabaseClient() as any;
+    const supabase = getAdminSupabaseClient() as any;
     const { data, error } = await supabase
       .from("property_drafts")
       .select("data")
@@ -396,7 +440,7 @@ export async function loadDraft(draftId: string) {
 export async function deleteDraft(draftId: string) {
   try {
     // Use admin client to bypass RLS policies
-    const supabase = await getAdminSupabaseClient() as any;
+    const supabase = getAdminSupabaseClient() as any;
     const { error } = await supabase
       .from("property_drafts")
       .delete()
@@ -416,21 +460,46 @@ export async function deleteProperty(propertyId: string) {
     return { success: false, error: "Property ID is required." };
   }
 
+  // MVP: Authorization check removed - single admin user has full access
+  // For beta: restore authorization check with isCurrentUserAdmin()
+  // const isAdmin = await isCurrentUserAdmin();
+  // if (!isAdmin) {
+  //   logAuthError('deleteProperty', 'Unauthorized access attempt', {
+  //     propertyId,
+  //     action: 'delete_property'
+  //   });
+  //   return { success: false, error: "Unauthorized: Admin access required to delete properties." };
+  // }
+
   const supabase = createDirectAdminClient();
 
   try {
-    // Delete the property from the properties_complete table
-    const { error } = await supabase.from("properties_complete").delete().eq("id", propertyId);
+    // Delete from properties_complete table first
+    const { error: completeError } = await supabase
+      .from("properties_complete")
+      .delete()
+      .eq("id", propertyId);
 
-    if (error) {
-      console.error("Error deleting property from database:", error);
-      throw new Error(error.message);
+    if (completeError) {
+      console.error("Error deleting property from properties_complete:", completeError);
+      throw new Error(completeError.message);
+    }
+
+    // Delete from main properties table (this will cascade delete all related child tables)
+    const { error: propertiesError } = await supabase
+      .from("properties")
+      .delete()
+      .eq("id", propertyId);
+
+    if (propertiesError) {
+      console.error("Error deleting property from properties table:", propertiesError);
+      throw new Error(propertiesError.message);
     }
 
     revalidatePath("/properties");
     revalidatePath(`/properties/${propertyId}`);
 
-    return { success: true, message: "Property deleted successfully." };
+    return { success: true, message: "Property and all associated data deleted successfully." };
   } catch (error) {
     console.error("Failed to delete property:", error);
     return { success: false, error: error instanceof Error ? error.message : "An unexpected error occurred." };
@@ -442,6 +511,17 @@ export async function loadPropertyForEdit(propertyId: string) {
   if (!propertyId) {
     return { success: false, error: "Property ID is required." };
   }
+
+  // MVP: Authorization check removed - single admin user has full access
+  // For beta: restore authorization check with isCurrentUserAdmin()
+  // const isAdmin = await isCurrentUserAdmin();
+  // if (!isAdmin) {
+  //   logAuthError('loadPropertyForEdit', 'Unauthorized access attempt', {
+  //     propertyId,
+  //     action: 'load_property_for_edit'
+  //   });
+  //   return { success: false, error: "Unauthorized: Admin access required to edit properties." };
+  // }
 
   const supabase = createDirectAdminClient();
 
@@ -612,6 +692,17 @@ export async function updateProperty(propertyId: string, formData: WizardFormDat
   if (!propertyId) {
     return { success: false, error: "Property ID is required." };
   }
+
+  // MVP: Authorization check removed - single admin user has full access
+  // For beta: restore authorization check with isCurrentUserAdmin()
+  // const isAdmin = await isCurrentUserAdmin();
+  // if (!isAdmin) {
+  //   logAuthError('updateProperty', 'Unauthorized access attempt', {
+  //     propertyId,
+  //     action: 'update_property'
+  //   });
+  //   return { success: false, error: "Unauthorized: Admin access required to update properties." };
+  // }
 
   try {
     console.log("Starting property update with direct admin client");

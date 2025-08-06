@@ -5,10 +5,8 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getSupabaseClient, getCurrentUser } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 
@@ -90,40 +88,26 @@ export function UserProfile() {
   }
 
   return (
-    <Card>
-      <form onSubmit={handleUpdateProfile}>
-        <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
-          <CardDescription>Update your account profile information</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {message && (
-            <Alert>
-              <AlertDescription>{message}</AlertDescription>
-            </Alert>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} disabled className="bg-muted" />
-            <p className="text-sm text-muted-foreground">Your email cannot be changed.</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" disabled={updating}>
-            {updating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {updating ? "Updating profile..." : "Update profile"}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+    <form onSubmit={handleUpdateProfile} className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {message && (
+        <Alert>
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
+      )}
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" value={email} disabled className="bg-muted" />
+        <p className="text-sm text-muted-foreground">Your email cannot be changed.</p>
+      </div>
+      {/* <div className="space-y-2">
+        <Label htmlFor="fullName">Full Name</Label>
+        <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+      </div> */}
+    </form>
   )
 }

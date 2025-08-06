@@ -1,12 +1,13 @@
 "use client"
 
 import { ResponsiveLayout } from "@/components/layout/responsive-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { BarChart, LineChart, PieChart } from "@/components/analytics/charts"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ComingSoonOverlay } from "@/components/ui/coming-soon-overlay"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Download, TrendingUp, Building2, DollarSign, Star } from "lucide-react"
 
 export default function AnalyticsPage() {
@@ -72,13 +73,14 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Charts */}
-        <Tabs defaultValue="occupancy">
-          <TabsList>
-            <TabsTrigger value="occupancy">Occupancy</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="ratings">Ratings</TabsTrigger>
-            <TabsTrigger value="checklist">Checklist Completion</TabsTrigger>
-          </TabsList>
+        <div className="relative">
+          <Tabs defaultValue="occupancy">
+            <TabsList>
+              <TabsTrigger value="occupancy">Occupancy</TabsTrigger>
+              <TabsTrigger value="revenue">Revenue</TabsTrigger>
+              <TabsTrigger value="ratings">Ratings</TabsTrigger>
+              <TabsTrigger value="checklist">Checklist Completion</TabsTrigger>
+            </TabsList>
 
           <TabsContent value="occupancy" className="space-y-6 pt-4">
             <Card>
@@ -162,6 +164,7 @@ export default function AnalyticsPage() {
 
           {/* Other tabs would follow the same pattern */}
         </Tabs>
+        </div>
 
         {/* Top performing properties */}
         <Card>
@@ -232,6 +235,11 @@ export default function AnalyticsPage() {
             </div>
           </CardContent>
         </Card>
+        
+        <ComingSoonOverlay 
+          title="Analytics Coming Soon"
+          description="Advanced analytics and reporting features are currently under development. Stay tuned for comprehensive insights into your property performance."
+        />
       </div>
     </ResponsiveLayout>
   )

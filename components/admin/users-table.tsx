@@ -31,6 +31,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/use-toast"
 import { getSupabaseClient } from "@/lib/supabase/client"
+import { createUser, updateUser, deleteUser, getAllUsers } from "@/app/actions/user-actions"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -59,8 +60,27 @@ export function DataTable({ data }: { data: User[] }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [users, setUsers] = useState<User[]>(data)
   const router = useRouter()
   const supabase = getSupabaseClient()
+
+  const fetchUsers = async () => {
+    try {
+      const result = await getAllUsers()
+
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+
+      setUsers(result.data || [])
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch users.",
+        variant: "destructive",
+      })
+    }
+  }
 
   const columns: ColumnDef<User>[] = [
     {
@@ -133,7 +153,7 @@ export function DataTable({ data }: { data: User[] }) {
   ]
 
   const table = useReactTable({
-    data,
+    data: users,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -179,18 +199,15 @@ export function DataTable({ data }: { data: User[] }) {
 
     setIsLoading(true)
     try {
-      const { error } = await supabase
-        .from("users")
-        .update({
-          full_name: data.full_name,
-          role: data.role,
-        })
-        .eq("id", selectedUser.id)
+      const result = await updateUser(selectedUser.id, {
+        full_name: data.full_name,
+        role: data.role,
+      })
 
-      if (error) {
+      if (!result.success) {
         toast({
           title: "Update failed",
-          description: error.message,
+          description: result.error,
           variant: "destructive",
         })
         return
@@ -201,7 +218,7 @@ export function DataTable({ data }: { data: User[] }) {
         description: "User has been updated successfully",
       })
       setIsEditDialogOpen(false)
-      router.refresh()
+      await fetchUsers()
     } catch (error) {
       toast({
         title: "An error occurred",
@@ -216,42 +233,20 @@ export function DataTable({ data }: { data: User[] }) {
   async function handleAddUser(data: UserFormValues) {
     setIsLoading(true)
     try {
-      // Create the user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      const result = await createUser({
         email: data.email,
         password: data.password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: data.full_name,
-        },
+        full_name: data.full_name,
+        role: data.role,
       })
 
-      if (authError) {
+      if (!result.success) {
         toast({
           title: "User creation failed",
-          description: authError.message,
+          description: result.error,
           variant: "destructive",
         })
         return
-      }
-
-      // Update the user's role in the users table
-      if (authData.user) {
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({
-            role: data.role,
-          })
-          .eq("id", authData.user.id)
-
-        if (updateError) {
-          toast({
-            title: "Role update failed",
-            description: updateError.message,
-            variant: "destructive",
-          })
-          return
-        }
       }
 
       toast({
@@ -260,7 +255,7 @@ export function DataTable({ data }: { data: User[] }) {
       })
       setIsAddDialogOpen(false)
       addForm.reset()
-      router.refresh()
+      await fetchUsers()
     } catch (error) {
       toast({
         title: "An error occurred",
@@ -277,13 +272,12 @@ export function DataTable({ data }: { data: User[] }) {
 
     setIsLoading(true)
     try {
-      // Delete the user from Supabase Auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(selectedUser.id)
+      const result = await deleteUser(selectedUser.id)
 
-      if (authError) {
+      if (!result.success) {
         toast({
           title: "User deletion failed",
-          description: authError.message,
+          description: result.error,
           variant: "destructive",
         })
         return
@@ -294,7 +288,7 @@ export function DataTable({ data }: { data: User[] }) {
         description: "User has been deleted successfully",
       })
       setIsDeleteDialogOpen(false)
-      router.refresh()
+      await fetchUsers()
     } catch (error) {
       toast({
         title: "An error occurred",
