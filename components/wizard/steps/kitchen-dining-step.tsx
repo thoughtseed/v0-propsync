@@ -10,12 +10,11 @@ import { IconCheckboxGrid } from "@/components/wizard/fields/icon-checkbox-grid"
 import { TagInput } from "@/components/wizard/fields/tag-input"
 import { FeatureBuilder } from "@/components/wizard/fields/feature-builder"
 import { Button } from "@/components/ui/button"
-import { Upload } from "lucide-react"
+import { ImageUpload } from "@/components/wizard/fields/image-upload"
 
 export function KitchenDiningStep() {
   const { currentStep, formData, updateFormData } = useWizard()
 
-  // Render different fields based on the current step
   switch (currentStep.id) {
     case "cooking-essentials":
       return (
@@ -194,52 +193,50 @@ export function KitchenDiningStep() {
 
           <div className="space-y-2">
             <Label>Kitchen Photos</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              {(formData.kitchen_photos || []).length > 0 ? (
-                <div className="grid grid-cols-2 gap-2">
-                  {(formData.kitchen_photos || []).map((photo, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={photo || "/placeholder.svg"}
-                        alt={`Kitchen photo ${index + 1}`}
-                        className="h-32 w-full object-cover rounded-md"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="absolute bottom-2 right-2 bg-white/80"
-                        onClick={() => {
-                          const photos = [...(formData.kitchen_photos || [])]
-                          photos.splice(index, 1)
-                          updateFormData({ kitchen_photos: photos })
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  {(formData.kitchen_photos || []).length < 4 && (
-                    <div className="border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center h-32">
-                      <Button variant="ghost">
-                        <Upload className="h-5 w-5 mr-1" />
-                        Add Photo
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  <Upload className="h-10 w-10 text-gray-400 mx-auto mb-2"  />
-                  <p className="text-sm text-gray-500 mb-2">Upload photos of the kitchen to showcase its features</p>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const photos = [...(formData.kitchen_photos || [])]
-                    photos.push("/placeholder.svg")
-                    updateFormData({ kitchen_photos: photos })
-                  }}>
-                    Upload Photos
-                  </Button>
-                </div>
-              )}
+            <div className="border-2 border-dashed border-gray-350 rounded-lg p-8 text-center">
+              <div className="grid grid-cols-2 gap-4">
+                {(formData.kitchen_photos || []).map((photo, index) => (
+                  <div key={index} className="relative">
+                    <ImageUpload
+                      name={`kitchen_photo_${index}`}
+                      label={`Kitchen Photo ${index + 1}`}
+                      value={photo ?? ""}
+                      onChange={(url) => {
+                        const photos = [...(formData.kitchen_photos || [])]
+                        photos[index] = url
+                        updateFormData({ kitchen_photos: photos })
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="absolute top-1 right-1"
+                      onClick={() => {
+                        const photos = [...(formData.kitchen_photos || [])]
+                        photos.splice(index, 1)
+                        updateFormData({ kitchen_photos: photos })
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+
+                {(formData.kitchen_photos || []).length < 4 && (
+                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-22 cursor-pointer">
+                    <ImageUpload
+                      name="add_kitchen_photo"
+                      label="Add Photo"
+                      value=""
+                      onChange={(url) => {
+                        const photos = [...(formData.kitchen_photos || [])]
+                        photos.push(url)
+                        updateFormData({ kitchen_photos: photos })
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

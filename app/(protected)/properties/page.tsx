@@ -9,9 +9,6 @@ import { Search, Plus, Filter } from "lucide-react"
 import Link from "next/link"
 import { ResponsiveLayout } from "@/components/layout/responsive-layout"
 import { ViewSwitcher } from "@/components/properties/view-switcher"
-import { PropertiesPageClient } from "@/app/(protected)/properties/properties-page-client"
-// MVP: RoleGate removed - single admin user has full access
-// For beta: restore RoleGate import from components/_archived/auth/role-gate
 
 // Define the property interface to match the component requirements
 interface FormattedProperty {
@@ -34,26 +31,24 @@ interface FormattedProperty {
 export const dynamic = "force-dynamic"
 
 export default async function PropertiesPage() {
-  const supabase = getServerSupabaseClient()
+  const supabase = await getServerSupabaseClient()
 
   console.log("Fetching properties data from database...")
-  
+
   // First check if properties_complete table exists
   const { data: tableInfo, error: tableError } = await supabase
     .from('properties_complete')
     .select('*')
-    
-  
+
   if (tableError) {
     console.error("Table check error:", tableError)
-    
+
     // Try querying the properties table instead
     console.log("Trying properties table instead...")
     const { data: propertiesData, error: propertiesError } = await supabase
-      .from("properties_complete")
+      .from("properties")
       .select("*")
-   
-    
+
     if (propertiesError) {
       console.error("Error fetching from properties table:", propertiesError)
       return (
@@ -64,10 +59,10 @@ export default async function PropertiesPage() {
         </ResponsiveLayout>
       )
     }
-    
+
     console.log("Properties found:", propertiesData?.length || 0)
     console.log("Sample property data:", propertiesData?.[0] || "No properties")
-    
+
     // Format properties for our components using the properties table
     const formattedProperties: FormattedProperty[] = (propertiesData || []).map((property: any) => ({
       id: property.id,
@@ -85,7 +80,7 @@ export default async function PropertiesPage() {
       createdAt: property.created_at,
       updatedAt: property.updated_at,
     }))
-    
+
     return renderPropertiesPage(formattedProperties)
   }
 
@@ -134,7 +129,6 @@ function renderPropertiesPage(formattedProperties: FormattedProperty[]) {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-2xl font-bold">Properties</h1>
-          {/* MVP: Always show Add Property button for authenticated users */}
           <Link href="/properties/add">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -174,7 +168,6 @@ function renderPropertiesPage(formattedProperties: FormattedProperty[]) {
           {formattedProperties.length === 0 ? (
             <div className="text-center py-12 border rounded-lg bg-gray-50">
               <p className="text-gray-500">No properties found</p>
-              {/* MVP: Always show Add New Property button for authenticated users */}
               <Link href="/properties/add">
                 <Button className="mt-4">
                   <Plus className="h-4 w-4 mr-2" />
