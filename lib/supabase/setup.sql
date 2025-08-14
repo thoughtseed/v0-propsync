@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create users table to store user profiles
-CREATE TABLE IF NOT EXISTS public.users (
+CREATE TABLE IF NOT EXISTS public.users1 (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL UNIQUE,
   full_name TEXT NOT NULL,
@@ -11,30 +11,30 @@ CREATE TABLE IF NOT EXISTS public.users (
 );
 
 -- Set up Row Level Security for users table
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users1 ENABLE ROW LEVEL SECURITY;
 
 -- Policies for users table
 CREATE POLICY "Users can view their own profile" 
-  ON public.users FOR SELECT 
+  ON public.users1 FOR SELECT 
   USING (auth.uid() = id);
 
 CREATE POLICY "Users can update their own profile" 
-  ON public.users FOR UPDATE 
+  ON public.users1 FOR UPDATE 
   USING (auth.uid() = id);
 
 CREATE POLICY "Admins can view all profiles" 
-  ON public.users FOR SELECT 
+  ON public.users1 FOR SELECT 
   USING (
     EXISTS (
-      SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
+      SELECT 1 FROM public.users1 WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
 CREATE POLICY "Admins can update all profiles" 
-  ON public.users FOR UPDATE 
+  ON public.users1 FOR UPDATE 
   USING (
     EXISTS (
-      SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
+      SELECT 1 FROM public.users1 WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
@@ -79,7 +79,7 @@ CREATE POLICY "Admins and managers can view all properties"
   ON public.properties FOR SELECT 
   USING (
     EXISTS (
-      SELECT 1 FROM public.users 
+      SELECT 1 FROM public.users1 
       WHERE id = auth.uid() AND role IN ('admin', 'manager')
     )
   );
@@ -88,7 +88,7 @@ CREATE POLICY "Admins and managers can update all properties"
   ON public.properties FOR UPDATE 
   USING (
     EXISTS (
-      SELECT 1 FROM public.users 
+      SELECT 1 FROM public.users1 
       WHERE id = auth.uid() AND role IN ('admin', 'manager')
     )
   );
@@ -141,7 +141,7 @@ CREATE POLICY "Admins and managers can view all property_basic_info"
   ON public.property_basic_info FOR SELECT 
   USING (
     EXISTS (
-      SELECT 1 FROM public.users 
+      SELECT 1 FROM public.users1 
       WHERE id = auth.uid() AND role IN ('admin', 'manager')
     )
   );
@@ -200,7 +200,7 @@ CREATE POLICY "Admins and managers can view all property_images"
   ON public.property_images FOR SELECT 
   USING (
     EXISTS (
-      SELECT 1 FROM public.users 
+      SELECT 1 FROM public.users1 
       WHERE id = auth.uid() AND role IN ('admin', 'manager')
     )
   );
@@ -209,7 +209,7 @@ CREATE POLICY "Admins and managers can update all property_images"
   ON public.property_images FOR UPDATE 
   USING (
     EXISTS (
-      SELECT 1 FROM public.users 
+      SELECT 1 FROM public.users1 
       WHERE id = auth.uid() AND role IN ('admin', 'manager')
     )
   );
@@ -221,7 +221,7 @@ CREATE POLICY "Admins and managers can update all property_images"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (id, email, full_name, role)
+  INSERT INTO public.users1 (id, email, full_name, role)
   VALUES (new.id, new.email, COALESCE(new.raw_user_meta_data->>'full_name', 'New User'), 'readonly');
   RETURN new;
 END;
@@ -238,7 +238,7 @@ CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM public.users
+    SELECT 1 FROM public.users1
     WHERE id = auth.uid() AND role = 'admin'
   );
 END;

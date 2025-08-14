@@ -1,3 +1,5 @@
+"use client"
+
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/lib/types/supabase"
 
@@ -11,18 +13,15 @@ export const getSupabaseClient = () => {
   return supabaseClient
 }
 
-// Simplified role handling - always returns "user" for authenticated users
+// Returns "user" if authenticated, null if not
 export async function getUserRole(): Promise<string | null> {
   const supabase = getSupabaseClient()
 
-  // Get the current session
   const {
     data: { session },
   } = await supabase.auth.getSession()
-  if (!session) return null
 
-  // Always return "user" for authenticated users (removing role-based access control)
-  return "user"
+  return session ? "user" : null
 }
 
 export async function getCurrentUser() {
@@ -33,10 +32,15 @@ export async function getCurrentUser() {
   } = await supabase.auth.getSession()
   if (!session) return null
 
-  const { data } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+  // Optional: fetch profile from users table
+  const { data: profile } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", session.user.id)
+    .single()
 
   return {
     ...session.user,
-    profile: data || null,
+    profile: profile || null,
   }
 }

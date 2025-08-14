@@ -180,8 +180,8 @@ export const climateControlSchema = z.object({
 export const locationDistanceSchema = z.object({
   type: z.string().optional(),
   name: z.string().optional(),
-  distance: z.string().optional(),
-  walkTime: z.string().optional(),
+  distance: z.union([z.string(), z.number()]).optional(),
+  walkTime: z.union([z.string(), z.number()]).optional(),
 })
 
 export const gettingAroundSchema = z.object({

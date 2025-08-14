@@ -6,25 +6,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TagInput } from "@/components/wizard/fields/tag-input"
-import { DistanceMapper, type LocationType } from "@/components/wizard/fields/distance-mapper"
+import { DistanceMapper } from "@/components/wizard/fields/distance-mapper"
 
 export function LocationLifestyleStep() {
   const { currentStep, formData, updateFormData } = useWizard()
 
-  // Location types for the distance mapper
-  const locationTypes: LocationType[] = [
-    { type: "Public Transport", icon: "🚇", showWalkTime: true },
-    { type: "Grocery Store", icon: "🛒", showWalkTime: true },
-    { type: "Restaurant", icon: "🍽️", showWalkTime: true },
-    { type: "Cafe", icon: "☕", showWalkTime: true },
-    { type: "Shopping Mall", icon: "🛍️", showWalkTime: true },
-    { type: "Tourist Attraction", icon: "🏛️", showWalkTime: false },
-    { type: "Hospital", icon: "🏥", showWalkTime: false },
-    { type: "Pharmacy", icon: "💊", showWalkTime: true },
-    { type: "Park", icon: "🌳", showWalkTime: true },
-  ]
-
-  // Render different fields based on the current step
   switch (currentStep.id) {
     case "getting-around":
       return (
@@ -45,8 +31,6 @@ export function LocationLifestyleStep() {
             <DistanceMapper
               value={formData.nearby_locations || []}
               onChange={(value) => updateFormData({ nearby_locations: value })}
-              types={locationTypes}
-              maxLocations={10}
             />
           </div>
 
