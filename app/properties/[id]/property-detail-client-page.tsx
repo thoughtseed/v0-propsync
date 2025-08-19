@@ -116,6 +116,7 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
               <TabsTrigger value="location">Location</TabsTrigger>
             </TabsList>
 
+            {/* --- Overview --- */}
             <TabsContent value="overview" className="p-4">
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Property Description</h2>
@@ -129,7 +130,6 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
                       <p className="font-medium">{formatPropertyType(property.property_type)}</p>
                     </CardContent>
                   </Card>
-
                   <Card>
                     <CardContent className="p-4 flex flex-col items-center justify-center">
                       <Bed className="h-5 w-5 mb-2 text-gray-500" />
@@ -137,7 +137,6 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
                       <p className="font-medium">{property.bedrooms}</p>
                     </CardContent>
                   </Card>
-
                   <Card>
                     <CardContent className="p-4 flex flex-col items-center justify-center">
                       <Bath className="h-5 w-5 mb-2 text-gray-500" />
@@ -145,7 +144,6 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
                       <p className="font-medium">{property.bathrooms}</p>
                     </CardContent>
                   </Card>
-
                   <Card>
                     <CardContent className="p-4 flex flex-col items-center justify-center">
                       <Users className="h-5 w-5 mb-2 text-gray-500" />
@@ -159,100 +157,153 @@ export function PropertyDetailClientPage({ property }: { property: Property }) {
                   <h3 className="text-lg font-semibold mb-2">Address</h3>
                   <p>{property.full_address || "Address not available"}</p>
                 </div>
+              </div>
+            </TabsContent>
 
-                {property.year_built && (
-                  <div className="mt-4">
-                    <h3 className="text-lg font-semibold mb-2">Building Information</h3>
-                    <div className="flex gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Year Built</p>
-                        <p>{property.year_built}</p>
-                      </div>
-                      {property.year_renovated && (
-                        <div>
-                          <p className="text-sm text-gray-500">Year Renovated</p>
-                          <p>{property.year_renovated}</p>
-                        </div>
-                      )}
-                    </div>
+            {/* --- Safety --- */}
+            <TabsContent value="safety" className="p-4">
+              <h2 className="text-xl font-semibold">Safety & Security</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {property.smoke_detectors?.length > 0 && (
+                  <div>
+                    <h3 className="text-md font-semibold">Smoke Detectors</h3>
+                    <ul className="list-disc pl-5">
+                      {property.smoke_detectors.map((detector: any, index: number) => (
+                        <li key={index}>
+                          {typeof detector === "string"
+                            ? detector
+                            : `${detector.location}${detector.expiry_date ? ` (Expiry: ${detector.expiry_date})` : ""}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {property.fire_extinguisher_location && (
+                  <div>
+                    <h3 className="text-md font-semibold">Fire Extinguisher</h3>
+                    <p>Location: {property.fire_extinguisher_location}</p>
+                    {property.fire_extinguisher_expiry && (
+                      <p>Expiry: {property.fire_extinguisher_expiry}</p>
+                    )}
                   </div>
                 )}
               </div>
             </TabsContent>
-            
-            <TabsContent value="safety" className="p-4">
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Safety & Security</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {property.smoke_detectors && property.smoke_detectors.length > 0 && (
-                    <div>
-                      <h3 className="text-md font-semibold">Smoke Detectors</h3>
-                      <ul className="list-disc pl-5">
-                        {property.smoke_detectors.map((detector: any, index: number) => (
-                          <li key={index}>
-                            {typeof detector === 'string' ? detector : `${detector.location}${detector.expiry_date ? ` (Expiry: ${detector.expiry_date})` : ''}`}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {property.fire_extinguisher_location && (
-                    <div>
-                      <h3 className="text-md font-semibold">Fire Extinguisher</h3>
-                      <p>Location: {property.fire_extinguisher_location}</p>
-                      {property.fire_extinguisher_expiry && (
-                        <p>Expiry: {property.fire_extinguisher_expiry}</p>
-                      )}
-                    </div>
-                  )}
-                  
-                  {property.door_lock_type && (
-                    <div>
-                      <h3 className="text-md font-semibold">Security</h3>
-                      <p>Door Lock Type: {property.door_lock_type}</p>
-                      {property.building_security && (
-                        <p>Building Security: {property.building_security}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
+
+            {/* --- Kitchen --- */}
+            <TabsContent value="kitchen" className="p-4">
+              <h2 className="text-xl font-semibold">Kitchen & Dining</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {property.major_appliances?.length > 0 && (
+                  <div>
+                    <h3 className="text-md font-semibold">Major Appliances</h3>
+                    <ul className="list-disc pl-5">
+                      {property.major_appliances.map((item: string, index: number) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {property.small_appliances?.length > 0 && (
+                  <div>
+                    <h3 className="text-md font-semibold">Small Appliances</h3>
+                    <ul className="list-disc pl-5">
+                      {property.small_appliances.map((item: string, index: number) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </TabsContent>
-            
-            <TabsContent value="kitchen" className="p-4">
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Kitchen & Dining</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {property.major_appliances && property.major_appliances.length > 0 && (
-                    <div>
-                      <h3 className="text-md font-semibold">Major Appliances</h3>
-                      <ul className="list-disc pl-5">
-                        {property.major_appliances.map((item: string, index: number) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {property.small_appliances && property.small_appliances.length > 0 && (
-                    <div>
-                      <h3 className="text-md font-semibold">Small Appliances</h3>
-                      <ul className="list-disc pl-5">
-                        {property.small_appliances.map((item: string, index: number) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {property.dining_capacity && (
-                    <div>
-                      <h3 className="text-md font-semibold">Dining</h3>
-                      <p>Capacity: {property.dining_capacity} people</p>
-                    </div>
-                  )}
-                </div>
+
+            <TabsContent value="bedrooms" className="p-4">
+              <h2 className="text-xl font-semibold">Bedrooms</h2>
+              <p>{property.bedrooms_description || property.description}</p>
+
+              <div className="mt-4 space-y-2">
+                <p><strong>Bedrooms:</strong> {property.bedrooms}</p>
+                <p><strong>Mattress Type:</strong> {property.mattress_type}</p>
+                <p><strong>Pillows:</strong> {property.pillow_details}</p>
+                <p><strong>Closets & Furniture:</strong> {property.closet_details} {property.furniture_inventory}</p>
+                <p><strong>Blackout Curtains:</strong> {property.blackout_curtains}</p>
+                <p><strong>Electronics:</strong> {property.bedroom_electronics.join(", ")}</p>
+                <p><strong>Amenities:</strong> {property.bedroom_amenities.join(", ")}</p>
+                <p><strong>Extra Bedding Location:</strong> {property.extra_bedding_location}</p>
+              </div>
+            </TabsContent>
+
+            {/* --- Bathrooms --- */}
+            <TabsContent value="bathrooms" className="p-4">
+              <h2 className="text-xl font-semibold">Bathrooms</h2>
+              <p>{property.bathrooms_description || "No bathroom details available."}</p>
+
+              <div className="mt-4 space-y-2">
+                <p><strong>Shower/Bath Configuration:</strong> {property.shower_bath_config}</p>
+                <p><strong>Towels:</strong> {property.towel_details}</p>
+                <p><strong>Toiletries Provided:</strong> {property.toiletries_provided.join(", ")}</p>
+                <p><strong>Hair Dryer:</strong> {property.hair_dryer_available ? property.hair_dryer_details : "None"}</p>
+                <p><strong>Water Pressure:</strong> {property.water_pressure}</p>
+                <p><strong>Hot Water System:</strong> {property.hot_water_system}</p>
+                <p><strong>Ventilation:</strong> {property.ventilation}</p>
+                <p><strong>Special Features:</strong> {property.bathroom_special_features.join(", ")}</p>
+              </div>
+            </TabsContent>
+
+            {/* --- Technology --- */}
+            <TabsContent value="technology" className="p-4">
+              <h2 className="text-xl font-semibold">Technology</h2>
+              <div className="mt-4 space-y-2">
+                <p><strong>WiFi Network:</strong> {property.wifi_network}</p>
+                <p><strong>WiFi Password:</strong> {property.wifi_password}</p>
+                <p><strong>Internet Speed:</strong> {property.internet_speed}</p>
+                <p><strong>Smart Home Features:</strong> {property.smart_home_features.join(", ")}</p>
+                <p><strong>Router Location:</strong> {property.router_location}</p>
+                <p><strong>TV Details:</strong> {property.tv_details}</p>
+                <p><strong>Streaming Services:</strong> {property.streaming_services}</p>
+                <p><strong>Speaker Systems:</strong> {property.speaker_systems}</p>
+                <p><strong>Remote Controls:</strong> {property.remote_controls.join(", ")}</p>
+                <p><strong>Charging Stations:</strong> {property.charging_stations}</p>
+                <p><strong>Backup Solutions:</strong> {property.backup_solutions}</p>
+              </div>
+            </TabsContent>
+
+            {/* --- Practical --- */}
+            <TabsContent value="practical" className="p-4">
+              <h2 className="text-xl font-semibold">Practical Information</h2>
+              <div className="mt-4 space-y-2">
+                <p><strong>Washer:</strong> {property.washer_details}</p>
+                <p><strong>Dryer:</strong> {property.dryer_details || "None"}</p>
+                <p><strong>Detergent Provided:</strong> {property.detergent_provided ? "Yes" : "No"}</p>
+                <p><strong>Iron Board:</strong> {property.iron_board_available ? "Available" : "None"}</p>
+                <p><strong>Drying Rack:</strong> {property.drying_rack_location}</p>
+                <p><strong>Laundry Basket:</strong> {property.laundry_basket_available ? "Available" : "None"}</p>
+                <p><strong>Building Laundry Info:</strong> {property.building_laundry_info}</p>
+                <p><strong>Vacuum:</strong> {property.vacuum_details}</p>
+                <p><strong>Cleaning Schedule:</strong> {property.cleaning_schedule}</p>
+                <p><strong>Special Instructions:</strong> {property.special_instructions}</p>
+                <p><strong>AC Units:</strong> {property.ac_units_details}</p>
+                <p><strong>Heating System:</strong> {property.heating_system}</p>
+                <p><strong>Thermostat Instructions:</strong> {property.thermostat_instructions}</p>
+                <p><strong>Ventilation Systems:</strong> {property.ventilation_systems}</p>
+              </div>
+            </TabsContent>
+
+            {/* --- Location --- */}
+            <TabsContent value="location" className="p-4">
+              <h2 className="text-xl font-semibold">Location & Lifestyle</h2>
+              <div className="mt-4 space-y-2">
+                <p>{property.neighborhood_description}</p>
+                <p><strong>Nearby Locations:</strong> {property.nearby_locations.map(loc => `${loc.name} (${loc.distance} ${loc.unit})`).join(", ")}</p>
+                <p><strong>Restaurants:</strong> {property.restaurants.join(", ")}</p>
+                <p><strong>Grocery Shopping:</strong> {property.grocery_shopping}</p>
+                <p><strong>Tourist Attractions:</strong> {property.tourist_attractions.join(", ")}</p>
+                <p><strong>Emergency Services:</strong> {property.emergency_services}</p>
+                <p><strong>Local Tips:</strong> {property.local_tips}</p>
+                <p><strong>Weather Patterns:</strong> {property.weather_patterns}</p>
+                <p><strong>Walking Score:</strong> {property.walking_score}</p>
               </div>
             </TabsContent>
           </Tabs>
